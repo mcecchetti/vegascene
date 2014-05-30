@@ -395,7 +395,7 @@ String VegaScene<JSEngine>::GetQualifiedName( const char* name ) const
 
 
 //------------------------------------------------------------------------------
-void vega_scene(const String& specFilePath, const String& outFilePath)
+void vegascene(const String& specFilePath, const String& outFilePath)
 {
     VegaScene<QJSEngine> vs;
     vs.LoadSpecFromFile(specFilePath);

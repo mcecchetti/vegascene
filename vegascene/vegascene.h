@@ -173,6 +173,6 @@ const char* VegaScene<JSEngine>::JSFuncRenderName = "render";
 
 
 
-void vega_scene(const String& specFilePath, const String& outFilePath = String());
+void vegascene(const String& specFilePath, const String& outFilePath = String());
 
 #endif // VEGASCENE_H
