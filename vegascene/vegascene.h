@@ -96,13 +96,16 @@ private:
     /**
      * if (vg.scene.bounds.mark !== undefined)
      *     vg.scene.bounds.mark = function() {};
+     * if (vg.headless.View.prototype.autopad !== undefined)
+     *     vg.headless.View.prototype.autopad = function() { return this; };
      */
     static String SetPostLoadConfig()
     {
         String source;
         source += String("if (vg.scene.bounds.mark !== undefined) ");
         source += String("vg.scene.bounds.mark = function() {};");
-
+        source += String("if (vg.headless.View.prototype.autopad !== undefined) ");
+        source += String("vg.headless.View.prototype.autopad = function() { return this; };");
         return source;
     }
 
