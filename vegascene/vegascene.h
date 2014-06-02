@@ -2,9 +2,7 @@
 #define VEGASCENE_H
 
 #include "jscallbackmanager.h"
-#ifdef DEBUG
 #include "jsconsole.h"
-#endif
 
 #include <string>
 
@@ -152,9 +150,7 @@ private:
     JSCallbackManager CallbackManager;
     String SpecFileContent;
     String JSVarNamespace;
-#ifdef DEBUG
     JSConsole Console;
-#endif
 };
 
 

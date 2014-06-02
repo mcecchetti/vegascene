@@ -2,9 +2,8 @@
 #include "vegascene.h"
 
 #include "jscallbackmanager.h"
-#ifdef DEBUG
 #include "jsconsole.h"
-#endif
+
 
 #include <QtCore/qfile.h>
 #include <QtCore/qtextstream.h>
@@ -14,7 +13,6 @@
 #include <iostream>
 
 
-//------------------------------------------------------------------------------
 
 
 //------------------------------------------------------------------------------
@@ -29,10 +27,8 @@ VegaScene<JSEngine>::VegaScene()
       JSModuleVega("vg", "../jsmodules/vega.js"),
       CallbackManager(),
       SpecFileContent(),
-      JSVarNamespace("vegascene")
-#ifdef DEBUG
-      ,Console()
-#endif
+      JSVarNamespace("vegascene"),
+      Console()
 {
     JSModule d3("d3", "../jsmodules/d3.js");
     this->JSModuleVega.AddRequiredModule(d3);
@@ -48,12 +44,16 @@ VegaScene<JSEngine>::VegaScene()
     SetJSFunctionSetTimeoutDef();
     SetJSFunctionRenderDef();
 
-#ifdef DEBUG
     this->InjectNonJSObject(this->Console, "console");
     String program = String("printView = ") + this->GetQualifiedName("console.View");
     this->SafeEvaluate(program);
-#endif
-    Initialized = EngineReady;
+    if (this-> EngineReady)
+    {
+        program = String("console = {}; console.log = ") + this->GetQualifiedName("console.Log");
+        this->SafeEvaluate(program);
+    }
+
+    this->Initialized = this-> EngineReady;
 }
 
 

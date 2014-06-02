@@ -24,7 +24,8 @@ CONFIG(debug, debug|release) {
 SOURCES += main.cpp \
     jscallback.cpp \
     jscallbackmanager.cpp \
-    vegascene.cpp
+    vegascene.cpp \
+    jsconsole.cpp
 
 HEADERS += \
     vegascene.h \
