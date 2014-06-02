@@ -8,6 +8,8 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qstringlist.h>
+#include <QRegExp>
+#include <QDir>
 #include <QtQml/qjsengine.h>
 
 #include <iostream>
@@ -26,7 +28,7 @@ VegaScene<JSEngine>::VegaScene()
       Rendered(false),
       JSModuleVega("vg", "../jsmodules/vega.js"),
       CallbackManager(),
-      SpecFileContent(),
+      BaseURL(""),
       JSVarNamespace("vegascene"),
       Console()
 {
@@ -102,6 +104,38 @@ bool VegaScene<JSEngine>::LoadSpecFromFile(const String& filePath)
     }
 }
 
+
+//------------------------------------------------------------------------------
+template< typename JSEngine >
+const String& VegaScene<JSEngine>::GetBaseURL()
+{
+    return this->BaseURL;
+}
+
+
+//------------------------------------------------------------------------------
+template< typename JSEngine >
+void VegaScene<JSEngine>::SetBaseURL(const String& baseURL)
+{
+    QString newBaseURL = QString::fromStdString(baseURL);
+    QRegExp re("^[A-Za-z]+\:\/\/.*");
+    if (!re.exactMatch(newBaseURL))
+    {
+        if (QDir::isAbsolutePath(newBaseURL))
+        {
+            newBaseURL.prepend("file://");
+        }
+        else
+        {
+            newBaseURL = QString("file://") + QDir::currentPath()
+                    + QDir::separator() + newBaseURL;
+        }
+    }
+    newBaseURL.append(QDir::separator());
+    this->BaseURL = newBaseURL.toStdString();
+    String source = String("vg.config.baseURL = '") + this->BaseURL + String("';");
+    this->SafeEvaluate(source);
+}
 
 //------------------------------------------------------------------------------
 template< typename JSEngine >
@@ -395,10 +429,16 @@ String VegaScene<JSEngine>::GetQualifiedName( const char* name ) const
 
 
 //------------------------------------------------------------------------------
-void vegascene(const String& specFilePath, const String& outFilePath)
+int vegascene(const String& specFilePath,
+              const String& outFilePath,
+              const String& baseURL)
 {
     VegaScene<QJSEngine> vs;
+    vs.SetBaseURL(baseURL);
+#ifdef DEBUG
+    std::cout << "Base URL: " << vs.GetBaseURL() << std::endl;
+#endif
     vs.LoadSpecFromFile(specFilePath);
     vs.Render();
-    vs.Write(outFilePath);
+    return !vs.Write(outFilePath);
 }

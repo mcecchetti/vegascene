@@ -47,6 +47,10 @@ public:
 
     bool LoadSpecFromFile(const String& filePath);
 
+    const String& GetBaseURL();
+
+    void SetBaseURL(const String& baseURL);
+
     bool Render();
 
     const String& GetResult();
@@ -151,7 +155,7 @@ private:
     bool Rendered;
     JSModule JSModuleVega;
     JSCallbackManager CallbackManager;
-    String SpecFileContent;
+    String BaseURL;
     String JSVarNamespace;
     JSConsole Console;
 };
@@ -172,6 +176,8 @@ const char* VegaScene<JSEngine>::JSFuncRenderName = "render";
 
 
 
-void vegascene(const String& specFilePath, const String& outFilePath = String());
+int vegascene(const String& specFilePath,
+              const String& outFilePath = String(""),
+              const String& baseURL = String(""));
 
 #endif // VEGASCENE_H
