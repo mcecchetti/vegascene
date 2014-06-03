@@ -2,6 +2,7 @@
 #include "vegascene.h"
 
 #include "jscallbackmanager.h"
+#include "data.h"
 #include "jsconsole.h"
 
 
@@ -28,6 +29,7 @@ VegaScene<JSEngine>::VegaScene()
       Rendered(false),
       JSModuleVega("vg", "../jsmodules/vega.js"),
       CallbackManager(),
+      DataLoader(),
       BaseURL(""),
       JSVarNamespace("vegascene"),
       Console()
@@ -42,6 +44,11 @@ VegaScene<JSEngine>::VegaScene()
     this->DefineNamespace();
 
     this->InjectNonJSObject(this->CallbackManager, VegaScene::JSVarCallbackManagerName);
+
+    this->InjectNonJSObject(this->DataLoader, VegaScene::JSVarDataLoaderName);
+    String source = String("if (vg.data.load !== undefined)");
+    source += String("vg.data.load = ") + this->GetQualifiedName("data.Load;");
+    this->SafeEvaluate(source);
 
     SetJSFunctionSetTimeoutDef();
     SetJSFunctionRenderDef();
@@ -67,7 +74,7 @@ bool VegaScene<JSEngine>::LoadSpec(const String& spec)
     if (!(this->Initialized)) return false;
 
     QJSValue nsObject = this->Engine.globalObject().property(QString::fromStdString(this->JSVarNamespace));
-    QString varName = QString::fromLatin1(this->JSVarSpecContentName);
+    QString varName = QString::fromLatin1(VegaScene::JSVarSpecContentName);
     QJSValue specObj(QString::fromStdString(spec));
     nsObject.setProperty(varName, specObj);
     String qVarName = this->GetQualifiedName(VegaScene::JSVarSpecContentName);
@@ -87,7 +94,7 @@ template< typename JSEngine >
 bool VegaScene<JSEngine>::LoadSpecFromFile(const String& filePath)
 {
     this->SpecLoaded = false;
-    if( !(this->Initialized) ) return false;
+    if ( !(this->Initialized) ) return false;
 
     String spec;
     if (ReadFile(filePath, spec))
@@ -107,7 +114,7 @@ bool VegaScene<JSEngine>::LoadSpecFromFile(const String& filePath)
 
 //------------------------------------------------------------------------------
 template< typename JSEngine >
-const String& VegaScene<JSEngine>::GetBaseURL()
+const String& VegaScene<JSEngine>::GetBaseURL() const
 {
     return this->BaseURL;
 }
@@ -118,16 +125,16 @@ template< typename JSEngine >
 void VegaScene<JSEngine>::SetBaseURL(const String& baseURL)
 {
     QString newBaseURL = QString::fromStdString(baseURL);
-    QRegExp re("^[A-Za-z]+\:\/\/.*");
+    QRegExp re(Data::LoadProtocolRE);
     if (!re.exactMatch(newBaseURL))
     {
         if (QDir::isAbsolutePath(newBaseURL))
         {
-            newBaseURL.prepend("file://");
+            newBaseURL.prepend(Data::LoadFileProtocol);
         }
         else
         {
-            newBaseURL = QString("file://") + QDir::currentPath()
+            newBaseURL = QString(Data::LoadFileProtocol) + QDir::currentPath()
                     + QDir::separator() + newBaseURL;
         }
     }
@@ -135,7 +142,9 @@ void VegaScene<JSEngine>::SetBaseURL(const String& baseURL)
     this->BaseURL = newBaseURL.toStdString();
     String source = String("vg.config.baseURL = '") + this->BaseURL + String("';");
     this->SafeEvaluate(source);
+    this->DataLoader.SetBaseURL(QString::fromStdString(this->BaseURL));
 }
+
 
 //------------------------------------------------------------------------------
 template< typename JSEngine >

@@ -25,10 +25,12 @@ SOURCES += main.cpp \
     jscallback.cpp \
     jscallbackmanager.cpp \
     vegascene.cpp \
-    jsconsole.cpp
+    jsconsole.cpp \
+    data.cpp
 
 HEADERS += \
     vegascene.h \
     jscallback.h \
     jscallbackmanager.h \
-    jsconsole.h
+    jsconsole.h \
+    data.h

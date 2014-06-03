@@ -2,6 +2,7 @@
 #define VEGASCENE_H
 
 #include "jscallbackmanager.h"
+#include "data.h"
 #include "jsconsole.h"
 
 #include <string>
@@ -47,7 +48,7 @@ public:
 
     bool LoadSpecFromFile(const String& filePath);
 
-    const String& GetBaseURL();
+    const String& GetBaseURL() const;
 
     void SetBaseURL(const String& baseURL);
 
@@ -108,8 +109,10 @@ private:
         String source;
         source += String("if (vg.scene.bounds.mark !== undefined) ");
         source += String("vg.scene.bounds.mark = function() {};");
+
         source += String("if (vg.headless.View.prototype.autopad !== undefined) ");
         source += String("vg.headless.View.prototype.autopad = function() { return this; };");
+
         return source;
     }
 
@@ -141,6 +144,7 @@ private:
 
 private:
     static const char* JSVarCallbackManagerName;
+    static const char* JSVarDataLoaderName;
     static const char* JSVarSpecContentName;
     static const char* JSVarResultName;
     static const char* JSFuncSetTimeoutName;
@@ -155,6 +159,7 @@ private:
     bool Rendered;
     JSModule JSModuleVega;
     JSCallbackManager CallbackManager;
+    Data DataLoader;
     String BaseURL;
     String JSVarNamespace;
     JSConsole Console;
@@ -163,6 +168,9 @@ private:
 
 template< typename JSEngine >
 const char* VegaScene<JSEngine>::JSVarCallbackManagerName = "timeoutBackend";
+
+template< typename JSEngine >
+const char* VegaScene<JSEngine>::JSVarDataLoaderName = "data";
 
 template< typename JSEngine >
 const char* VegaScene<JSEngine>::JSVarSpecContentName = "specContent";
