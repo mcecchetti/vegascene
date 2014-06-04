@@ -2,7 +2,9 @@
 #include "vegascene.h"
 
 #include <iostream>
+
 #include <vector>
+
 
 
 void printUsage()
