@@ -36,6 +36,14 @@ VegaScene<JSEngine>::VegaScene()
 {
     JSModule d3("d3", "../jsmodules/d3.js");
     this->JSModuleVega.AddRequiredModule(d3);
+#ifdef WITH_TOPOJSON
+    JSModule tj("topojson", "../jsmodules/topojson.js");
+    this->JSModuleVega.AddRequiredModule(tj);
+#endif
+#ifdef WITH_JSLIBS
+    JSModule d3GeoProjection("d3", "../jslib/d3.geo.projection.min.js");
+    this->JSModuleVega.AddRequiredModule(d3GeoProjection);
+#endif
     this->JSModuleVega.preLoadConfig = VegaScene::SetPreLoadConfig();
     this->JSModuleVega.postLoadConfig = VegaScene::SetPostLoadConfig();
 
