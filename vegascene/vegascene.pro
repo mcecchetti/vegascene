@@ -21,6 +21,9 @@ CONFIG(debug, debug|release) {
     TARGET = vegascene-dbg
 }
 
+QMAKE_CXXFLAGS += -std=c++98 -Wall
+
+
 SOURCES += main.cpp \
     jscallback.cpp \
     jscallbackmanager.cpp \

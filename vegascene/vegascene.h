@@ -6,9 +6,12 @@
 #include "jsconsole.h"
 
 #include <string>
+#include <vector>
 
 
 typedef std::string String;
+typedef std::vector<String> ArgListType;
+
 
 
 class JSModule
@@ -65,81 +68,41 @@ private:
     template< typename T >
     bool InjectNonJSObject(T& object, String varName);
 
+    bool LoadJSLib(const String& pathToLib);
+
     bool LoadJSModule(const JSModule& info, bool withDependencies = true);
+
+    bool LoadJSTemplate(const String& filePath, const ArgListType & argList);
+    bool LoadJSTemplate(const String& filePath,
+                        const String& arg1 = String(),
+                        const String& arg2 = String(),
+                        const String& arg3 = String(),
+                        const String& arg4 = String(),
+                        const String& arg5 = String());
 
     bool ReadFile(const String& filePath, String& fileContent) const;
 
-    /**
-     * if (d3 !== undefined) {
-     *     if (d3.svg === undefined) {
-     *        function d3_svg() {};
-     *        var prot = d3_svg.prototype;
-     *        prot.self = function() { return this };
-     *        prot.arc = prot.area = prot.line = prot.symbol
-     *            = prot.x = prot.y = prot.y0 = prot.y1
-     *            = prot.type = prot.size = prot.self;
-     *        d3.svg = new d3_svg();
-     *     }
-     * }
-     */
+private:
     static String SetPreLoadConfig()
     {
-        String source;
-        source += String("if (d3 !== undefined) {");
-        source += String("if (d3.svg === undefined) {");
-        source += String("function d3_svg() {};");
-        source += String("var prot = d3_svg.prototype;");
-        source += String("prot.self = function() { return this };");
-        source += String("prot.arc = prot.area = prot.line = prot.symbol ");
-        source += String("= prot.x = prot.y = prot.y0 = prot.y1 ");
-        source += String("= prot.type = prot.size = prot.self;");
-        source += String("d3.svg = new d3_svg(); } }");
-
-        return source;
+        String sourcePath("../jslib/vega.preload.config.js");
+        return sourcePath;
     }
 
-    /**
-     * if (vg.scene.bounds.mark !== undefined)
-     *     vg.scene.bounds.mark = function() {};
-     * if (vg.headless.View.prototype.autopad !== undefined)
-     *     vg.headless.View.prototype.autopad = function() { return this; };
-     */
     static String SetPostLoadConfig()
     {
-        String source;
-        source += String("if (vg.scene.bounds.mark !== undefined) ");
-        source += String("vg.scene.bounds.mark = function() {};");
-
-        source += String("if (vg.headless.View.prototype.autopad !== undefined) ");
-        source += String("vg.headless.View.prototype.autopad = function() { return this; };");
-
-        return source;
+        String sourcePath("../jslib/vega.postload.config.js");
+        return sourcePath;
     }
 
-    /**
-     * function setTimeout(callback, delay){
-     *     timeoutBackend.start(callback, delay);
-     * }
-     *
-     */
     void SetJSFunctionSetTimeoutDef();
-
-    /**
-     * function render(spec) {
-     *     vg.headless.render(
-     *         {spec: spec, renderer: 'scene'},
-     *         function(err, data) {
-     *             if (err) throw err;
-     *                 outSceneGraph = data.scene;
-     *         }
-     *     );
-     *  }
-     *
-     */
     void SetJSFunctionRenderDef();
+    void SetJSFuncDataLoad();
+    void SetJSObjConsole();
+
 
     void DefineNamespace();
-
+    void DefineProperty(const String& name);
     String GetQualifiedName( const char* name ) const;
 
 private:

@@ -12,9 +12,11 @@
 #include <QRegExp>
 #include <QDir>
 #include <QtQml/qjsengine.h>
+#include <QJSValueList>
+
 
 #include <iostream>
-
+#include <vector>
 
 
 
@@ -40,35 +42,27 @@ VegaScene<JSEngine>::VegaScene()
     JSModule tj("topojson", "../jsmodules/topojson.js");
     this->JSModuleVega.AddRequiredModule(tj);
 #endif
-#ifdef WITH_JSLIBS
-    JSModule d3GeoProjection("d3", "../jslib/d3.geo.projection.min.js");
-    this->JSModuleVega.AddRequiredModule(d3GeoProjection);
-#endif
     this->JSModuleVega.preLoadConfig = VegaScene::SetPreLoadConfig();
     this->JSModuleVega.postLoadConfig = VegaScene::SetPostLoadConfig();
-
     this->LoadJSModule(this->JSModuleVega);
+
+#ifdef WITH_EXAMPLE_LIBS
+    this->LoadJSLib("../jslib/d3.geo.projection.min.js");
+#endif
 
     this->DefineNamespace();
 
+    this->InjectNonJSObject(this->Console, "console");
+    SetJSObjConsole();
+
     this->InjectNonJSObject(this->CallbackManager, VegaScene::JSVarCallbackManagerName);
+    SetJSFunctionSetTimeoutDef();
+
 
     this->InjectNonJSObject(this->DataLoader, VegaScene::JSVarDataLoaderName);
-    String source = String("if (vg.data.load !== undefined)");
-    source += String("vg.data.load = ") + this->GetQualifiedName("data.Load;");
-    this->SafeEvaluate(source);
+    SetJSFuncDataLoad();
 
-    SetJSFunctionSetTimeoutDef();
     SetJSFunctionRenderDef();
-
-    this->InjectNonJSObject(this->Console, "console");
-    String program = String("printView = ") + this->GetQualifiedName("console.View");
-    this->SafeEvaluate(program);
-    if (this-> EngineReady)
-    {
-        program = String("console = {}; console.log = ") + this->GetQualifiedName("console.Log");
-        this->SafeEvaluate(program);
-    }
 
     this->Initialized = this-> EngineReady;
 }
@@ -227,7 +221,8 @@ bool VegaScene<JSEngine>::Write(const String& filePath)
             QFile file(filePath.c_str());
             if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
             {
-                std::cerr << "error: can not write to file: '" << filePath << "'" << std::endl;
+                std::cerr << "error: can not write to file: '" << filePath
+                          << "'" << std::endl;
                 return false;
             }
             else
@@ -289,6 +284,32 @@ bool VegaScene<JSEngine>::InjectNonJSObject(T& object, String varName)
 
 //------------------------------------------------------------------------------
 template< typename JSEngine >
+bool VegaScene<JSEngine>::LoadJSLib(const String& pathToLib)
+{
+    if ( !(this->EngineReady) ) return false;
+
+    String libSource;
+    this->EngineReady = ReadFile(pathToLib, libSource);
+    if (this->EngineReady)
+    {
+        QJSValue result = this->Engine.evaluate(QString::fromStdString(libSource));
+        this->EngineReady = !result.isError();
+#ifdef DEBUG
+        if(!this->EngineReady)
+        {
+            std::cerr << "In loading JavaScript source file: "
+                      << pathToLib << "\n"
+                      << "error: uncaught exception: "
+                      << result.toString().toStdString() << std::endl;
+        }
+#endif
+    }
+    return this->EngineReady;
+}
+
+
+//------------------------------------------------------------------------------
+template< typename JSEngine >
 bool VegaScene<JSEngine>::LoadJSModule(const JSModule& info, bool withDependencies)
 {
     if ( !(this->EngineReady) ) return false;
@@ -307,65 +328,148 @@ bool VegaScene<JSEngine>::LoadJSModule(const JSModule& info, bool withDependenci
 
     if (!info.preLoadConfig.empty())
     {
-        QJSValue result =  this->Engine.evaluate(QString::fromStdString(info.preLoadConfig));
-        this->EngineReady = !result.isError();
-        if (!this->EngineReady)
-        {
-#ifdef DEBUG
-            std::cerr << "In loading JavaScript module with namespace '" << info.NameSpace << "'\n"
-                      << "preload config error: uncaught exception: " << result.toString().toStdString() << std::endl;
-#endif
-        return false;
-        }
+        this->EngineReady = this->LoadJSLib(info.preLoadConfig);
     }
 
-    String moduleSource;
-    if (ReadFile(info.FilePath, moduleSource))
+    if (this->EngineReady)
     {
-        QJSValue result = this->Engine.evaluate(QString::fromStdString(moduleSource), QString::fromStdString(info.NameSpace));
-        this->EngineReady = !result.isError();
+        String moduleSource;
+        this->EngineReady = ReadFile(info.FilePath, moduleSource);
         if (this->EngineReady)
         {
-            this->EngineReady = this->Engine.globalObject().hasProperty(QString::fromStdString(info.NameSpace));
-#ifdef DEBUG
+            QJSValue result = this->Engine.evaluate(QString::fromStdString(moduleSource));
+            this->EngineReady = !result.isError();
             if (this->EngineReady)
             {
-                std::cout << "JavaScript module with namespace '" + info.NameSpace + "' has been loaded successfully." << std::endl;
+                this->EngineReady = this->Engine.globalObject().hasProperty(QString::fromStdString(info.NameSpace));
+#ifdef DEBUG
+                if (this->EngineReady)
+                {
+                    std::cout << "JavaScript module with namespace '"
+                                 + info.NameSpace
+                                 + "' has been loaded successfully."
+                              << std::endl;
+                }
+                else
+                {
+                    std::cerr << "error: JavaScript module with namespace '"
+                              << info.NameSpace
+                              << "' has been loaded but namespace is not present."
+                              << std::endl;
+                }
+#endif
+                if (!info.postLoadConfig.empty())
+                {
+                    this->EngineReady = this->LoadJSLib(info.postLoadConfig);
+                }
+
             }
+#ifdef DEBUG
             else
             {
-                std::cerr << "error: JavaScript module with namespace '" << info.NameSpace << "' has been loaded but namespace is not present." << std::endl;
-
+                std::cerr << "In loading JavaScript module with namespace '"
+                          << info.NameSpace << "'\n"
+                          << "error: uncaught exception: "
+                          << result.toString().toStdString() << std::endl;
             }
 #endif
-            if (!info.postLoadConfig.empty())
-            {
-                QJSValue result =  this->Engine.evaluate(QString::fromStdString(info.postLoadConfig));
-                this->EngineReady = !result.isError();
-                if (!this->EngineReady)
-                {
-        #ifdef DEBUG
-                    std::cerr << "In loading JavaScript module with namespace '" << info.NameSpace << "'\n"
-                              << "postload config error: uncaught exception: " << result.toString().toStdString() << std::endl;
-        #endif
-                }
-            }
+        }
+    }
+    return this->EngineReady;
+}
 
+//------------------------------------------------------------------------------
+template< typename JSEngine >
+bool VegaScene<JSEngine>::LoadJSTemplate(const String& filePath,
+                                         const String & arg1,
+                                         const String & arg2,
+                                         const String & arg3,
+                                         const String & arg4,
+                                         const String & arg5)
+{
+    ArgListType argList;
+    const String* args[5] = {&arg1, &arg2, &arg3, &arg4, &arg5};
+    for (int i = 0; i < 5; ++i) {
+        if (args[i]->empty()) break;
+        argList.push_back(*(args[i]));
+    }
+
+    return this->LoadJSTemplate(filePath, argList);
+}
+
+//------------------------------------------------------------------------------
+template< typename JSEngine >
+bool VegaScene<JSEngine>::LoadJSTemplate(const String& filePath,
+                                         const ArgListType & argList)
+{
+    if ( !(this->EngineReady) ) return false;
+
+    QJSValueList jsArgList;
+
+
+    typedef ArgListType::const_iterator CIterator;
+    for (CIterator it = argList.begin(), end = argList.end(); it != end; ++it)
+    {
+        QJSValue arg;
+        QString name = QString::fromStdString(*it);
+        if (name[0] == '.')
+        {
+            arg = QJSValue(name.remove(0,1));
+        }
+        else
+        {
+            arg = this->Engine.evaluate(name);
+            this->EngineReady = !arg.isError() && arg.isObject();
+            if (!this->EngineReady)
+            {
+#ifdef DEBUG
+                std::cerr << "In loading JavaScript template: " << filePath << "\n"
+                          << "error: in reading argument '" << *it << "': "
+                          << arg.toString().toStdString() << std::endl;
+#endif
+                return false;
+            }
+        }
+        jsArgList.append(arg);
+    }
+
+    this->EngineReady = this->LoadJSLib(filePath);
+    QJSValue templateFunc = this->Engine.evaluate("vegascene_template");
+    this->EngineReady = !templateFunc.isError() && templateFunc.isCallable();
+    if (this->EngineReady)
+    {
+        this->EngineReady = templateFunc.isCallable();
+        if (this->EngineReady)
+        {
+            QJSValue result = templateFunc.call(jsArgList);
+            this->EngineReady = !result.isError();
+#ifdef DEBUG
+            if (!this->EngineReady)
+            {
+                std::cerr << "In loading JavaScript template: " << filePath << "\n"
+                          << "error: in instantiating template: "
+                          << result.toString().toStdString() << std::endl;
+            }
+#endif
         }
 #ifdef DEBUG
         else
         {
-
-            std::cerr << "In loading JavaScript module with namespace '" << info.NameSpace << "'\n"
-                      << "error: uncaught exception: " << result.toString().toStdString() << std::endl;
-
+            std::cerr << "In loading JavaScript template: " << filePath << "\n"
+                      << "error: template function is not a callable object.";
         }
 #endif
     }
+#ifdef DEBUG
     else
     {
-        this->EngineReady = false;
+        std::cerr << "In loading JavaScript template: " << filePath << "\n"
+                  << "error: in getting template function: "
+                  << templateFunc.toString().toStdString() << std::endl;
     }
+#endif
+
+    this->Engine.evaluate("vegascene_template = undefined");
     return this->EngineReady;
 }
 
@@ -391,15 +495,19 @@ bool VegaScene<JSEngine>::ReadFile(const String& filePath, String& fileContent) 
 
 
 //------------------------------------------------------------------------------
+String PrependPropFlag(const char* name)
+{
+    String flaggedName = String(".") + String(name);
+    return flaggedName;
+}
+
+
+//------------------------------------------------------------------------------
 template< typename JSEngine >
 void VegaScene<JSEngine>::SetJSFunctionSetTimeoutDef()
 {
     String timeoutBackend = this->GetQualifiedName(VegaScene::JSVarCallbackManagerName);
-    String funcDef;
-    funcDef += String("function setTimeout(callback, delay){");
-    funcDef += timeoutBackend + String(".Start(callback, delay); }");
-
-    this->SafeEvaluate(funcDef);
+    this->LoadJSTemplate("../jslib/setTimeout.js", timeoutBackend);
 }
 
 
@@ -407,16 +515,28 @@ void VegaScene<JSEngine>::SetJSFunctionSetTimeoutDef()
 template< typename JSEngine >
 void VegaScene<JSEngine>::SetJSFunctionRenderDef()
 {
-    String outSceneGraph = this->GetQualifiedName(VegaScene::JSVarResultName);
-    String render = this->GetQualifiedName(VegaScene::JSFuncRenderName);
-    String funcDef;
-    funcDef += render + String(" = function(spec) {");
-    funcDef += String("vg.headless.render(");
-    funcDef += String("{spec: spec, renderer: 'scene'},");
-    funcDef += String("function(err, data) {");
-    funcDef += String("if (err) throw err;");
-    funcDef += outSceneGraph + String(" = data.scene; } ); }");
-    this->SafeEvaluate(funcDef);
+    String render = PrependPropFlag(VegaScene::JSFuncRenderName);
+    String outSceneGraph = PrependPropFlag(VegaScene::JSVarResultName);
+    this->LoadJSTemplate("../jslib/vegascene.render.js",
+                         this->JSVarNamespace, render, outSceneGraph);
+}
+
+
+//------------------------------------------------------------------------------
+template< typename JSEngine >
+void VegaScene<JSEngine>::SetJSObjConsole()
+{
+    String consoleBackend = this->GetQualifiedName("console");
+    this->LoadJSTemplate("../jslib/console.js", consoleBackend);
+}
+
+
+//------------------------------------------------------------------------------
+template< typename JSEngine >
+void VegaScene<JSEngine>::SetJSFuncDataLoad()
+{
+    String dataLoadBackend = this->GetQualifiedName(VegaScene::JSVarDataLoaderName);
+    this->LoadJSTemplate("../jslib/vega.data.load.js", dataLoadBackend);
 }
 
 
@@ -434,6 +554,19 @@ void VegaScene<JSEngine>::DefineNamespace()
     this->SafeEvaluate(this->JSVarNamespace);
 }
 
+
+//------------------------------------------------------------------------------
+template< typename JSEngine >
+void VegaScene<JSEngine>::DefineProperty(const String& name)
+{
+    QString propName = QString::fromStdString(name);
+    QJSValue globalObject = this->Engine.globalObject();
+    QJSValue vs = globalObject.property(QString::fromStdString(this->JSVarNamespace));
+    if (!vs.hasProperty(propName))
+    {
+        vs.setProperty(propName, this->Engine.newObject());
+    }
+}
 
 //------------------------------------------------------------------------------
 template< typename JSEngine >
