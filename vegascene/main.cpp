@@ -5,6 +5,7 @@
 
 #include <vector>
 
+#include <QGuiApplication>
 
 
 void printUsage()
@@ -19,6 +20,9 @@ void printUsage()
 
 int main(int argc, char *argv[])
 {
+    // for font metrics support
+    QGuiApplication app(argc, argv);
+
     String optionBase("-b");
     String baseURL("");
 

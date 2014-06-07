@@ -2,6 +2,7 @@
 #define VEGASCENE_H
 
 #include "jscallbackmanager.h"
+#include "jscontext2d.h"
 #include "data.h"
 #include "jsconsole.h"
 
@@ -97,9 +98,9 @@ private:
 
     void SetJSFunctionSetTimeoutDef();
     void SetJSFunctionRenderDef();
+    void setJSObjContext2d();
     void SetJSFuncDataLoad();
     void SetJSObjConsole();
-
 
     void DefineNamespace();
     void DefineProperty(const String& name);
@@ -107,6 +108,7 @@ private:
 
 private:
     static const char* JSVarCallbackManagerName;
+    static const char* JSVarContext2dName;
     static const char* JSVarDataLoaderName;
     static const char* JSVarSpecContentName;
     static const char* JSVarResultName;
@@ -122,6 +124,7 @@ private:
     bool Rendered;
     JSModule JSModuleVega;
     JSCallbackManager CallbackManager;
+    JSContext2d Context2d;
     Data DataLoader;
     String BaseURL;
     String JSVarNamespace;
@@ -131,6 +134,9 @@ private:
 
 template< typename JSEngine >
 const char* VegaScene<JSEngine>::JSVarCallbackManagerName = "timeoutBackend";
+
+template< typename JSEngine >
+const char* VegaScene<JSEngine>::JSVarContext2dName = "context2d";
 
 template< typename JSEngine >
 const char* VegaScene<JSEngine>::JSVarDataLoaderName = "data";

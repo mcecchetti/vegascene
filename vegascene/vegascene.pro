@@ -7,7 +7,7 @@
 QT += core
 QT += concurrent
 QT += qml
-QT -= gui
+QT += gui
 
 TARGET = vegascene
 
@@ -29,11 +29,13 @@ SOURCES += main.cpp \
     jscallbackmanager.cpp \
     vegascene.cpp \
     jsconsole.cpp \
-    data.cpp
+    data.cpp \
+    jscontext2d.cpp
 
 HEADERS += \
     vegascene.h \
     jscallback.h \
     jscallbackmanager.h \
     jsconsole.h \
-    data.h
+    data.h \
+    jscontext2d.h

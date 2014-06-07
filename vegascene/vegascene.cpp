@@ -31,6 +31,7 @@ VegaScene<JSEngine>::VegaScene()
       Rendered(false),
       JSModuleVega("vg", "../jsmodules/vega.js"),
       CallbackManager(),
+      Context2d(Engine),
       DataLoader(),
       BaseURL(""),
       JSVarNamespace("vegascene"),
@@ -58,6 +59,8 @@ VegaScene<JSEngine>::VegaScene()
     this->InjectNonJSObject(this->CallbackManager, VegaScene::JSVarCallbackManagerName);
     SetJSFunctionSetTimeoutDef();
 
+    this->InjectNonJSObject(this->Context2d, VegaScene::JSVarContext2dName);
+    setJSObjContext2d();
 
     this->InjectNonJSObject(this->DataLoader, VegaScene::JSVarDataLoaderName);
     SetJSFuncDataLoad();
@@ -528,6 +531,17 @@ void VegaScene<JSEngine>::SetJSObjConsole()
 {
     String consoleBackend = this->GetQualifiedName("console");
     this->LoadJSTemplate("../jslib/console.js", consoleBackend);
+}
+
+
+//------------------------------------------------------------------------------
+template< typename JSEngine >
+void VegaScene<JSEngine>::setJSObjContext2d()
+{
+    String context2dBackend = PrependPropFlag(VegaScene::JSVarContext2dName);
+    this->LoadJSTemplate("../jslib/vegascene.canvas.js",
+                         this->JSVarNamespace, context2dBackend);
+
 }
 
 
