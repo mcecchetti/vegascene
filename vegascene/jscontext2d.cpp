@@ -277,16 +277,15 @@ void JSContext2d::SetTextBaseline(const QString& value)
 //------------------------------------------------------------------------------
 QJSValue JSContext2d::measureText(const QString& text)
 {
-    if (text.isEmpty()) return 0;
-
-    QFontMetrics fm(this->Font);
-    int textWidth = fm.width(text);
-
+    int textWidth = 0;
+    if (!text.isEmpty()) {
+        QFontMetrics fm(this->Font);
+        textWidth = fm.width(text);
+    }
 #if 0
     std::cout << "text: >" << text.toStdString()
               << "<, width: " << textWidth << "\n";
 #endif
-
     QJSValue result = this->Engine.newObject();
     result.setProperty("width", QJSValue(textWidth));
     return result;
