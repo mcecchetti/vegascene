@@ -259,6 +259,11 @@ bool VegaScene::Write(const String& filePath)
 
 
 //------------------------------------------------------------------------------
+// Description:
+// Internal function that evaluate the source code in `code` and check if an
+// error occurred. In such a case the `EngineReady` status attribute is set to
+// false. If no error occurs the result is returned in `result`.
+// Return the value of the `EngineReady` status attribute.
 bool VegaScene::SafeEvaluate(const String& code, String* result)
 {
     if (!(this->EngineReady)) return false;
@@ -287,25 +292,38 @@ bool VegaScene::SafeEvaluate(const String& code, String* result)
 
 
 //------------------------------------------------------------------------------
+// Description:
+// Internal function which let C++ object properties, signals and slots be
+// accessible inside the JavaScript engine context through the name defined in
+// `varName` which is attached to the vegascene namespace. If an error occurs
+// the `EngineReady` status attribute is set to false. Return the value of
+// the `EngineReady` status attribute.
 template< typename T >
 bool VegaScene::InjectNonJSObject(T& object, String varName)
 {
     if( !(this->EngineReady) ) return false;
     QJSValue jsObject = this->Engine.newQObject(&object);
-    QJSValue nsObject = this->Engine.globalObject().property(QString::fromStdString(this->JSVarNamespace));
+    QString ns = QString::fromStdString(this->JSVarNamespace);
+    QJSValue nsObject = this->Engine.globalObject().property(ns);
     nsObject.setProperty(QString::fromStdString(varName), jsObject);
+
+    // check
     String qVarName = this->GetQualifiedName(varName.c_str());
     return this->SafeEvaluate(qVarName);
 }
 
 
 //------------------------------------------------------------------------------
+// Description:
+// Internal function used for loading into the engine context a JavaScript
+// source file. If an error occurs the `EngineReady` status attribute is set
+// to false. Return the value of the `EngineReady` status attribute.
 bool VegaScene::LoadJSLib(const String& pathToLib)
 {
     if ( !(this->EngineReady) ) return false;
 
     String libSource;
-    this->EngineReady = ReadFile(pathToLib, libSource);
+    this->EngineReady = this->ReadFile(pathToLib, libSource);
     if (this->EngineReady)
     {
         QJSValue result = this->Engine.evaluate(QString::fromStdString(libSource));
@@ -325,9 +343,22 @@ bool VegaScene::LoadJSLib(const String& pathToLib)
 
 
 //------------------------------------------------------------------------------
+// Description:
+// Internal function used for loading into the engine context a JavaScript
+// module, which is retrieved by the `info.Filepath` attribute. Eventually
+// required modules are loaded before the current module except the value of
+// `withDependencies` parameter is false. Through external JavaScript source
+// files is also possible to load into the engine context pre loading
+// configuration setting and post loading configuration setting.
+// Pay attention: the routine does not handle either circular or shared
+// dependencies.
+// If an error occurs the `EngineReady` status attribute is set to false.
+// Return the value of the `EngineReady` status attribute.
 bool VegaScene::LoadJSModule(const JSModule& info, bool withDependencies)
 {
     if ( !(this->EngineReady) ) return false;
+
+    // First load eventually required modules.
     if (withDependencies)
     {
         typedef JSModule::DependenciesListType::const_iterator ConstIterator;
@@ -352,15 +383,18 @@ bool VegaScene::LoadJSModule(const JSModule& info, bool withDependencies)
         this->EngineReady = ReadFile(info.FilePath, moduleSource);
         if (this->EngineReady)
         {
-            QJSValue result = this->Engine.evaluate(QString::fromStdString(moduleSource));
+            QString source = QString::fromStdString(moduleSource);
+            QJSValue result = this->Engine.evaluate(source);
             this->EngineReady = !result.isError();
             if (this->EngineReady)
             {
-                this->EngineReady = this->Engine.globalObject().hasProperty(QString::fromStdString(info.NameSpace));
+                // Check if the module namespace is defined.
+                QString ns = QString::fromStdString(info.NameSpace);
+                this->EngineReady = this->Engine.globalObject().hasProperty(ns);
 #ifdef DEBUG
                 if (this->EngineReady)
                 {
-                    std::cout << "JavaScript module with namespace '"
+                    std::cout << "log: JavaScript module with namespace '"
                                  + info.NameSpace
                                  + "' has been loaded successfully."
                               << std::endl;
@@ -373,7 +407,7 @@ bool VegaScene::LoadJSModule(const JSModule& info, bool withDependencies)
                               << std::endl;
                 }
 #endif
-                if (!info.postLoadConfig.empty())
+                if (this->EngineReady && !info.postLoadConfig.empty())
                 {
                     this->EngineReady = this->LoadJSLib(info.postLoadConfig);
                 }
@@ -393,13 +427,29 @@ bool VegaScene::LoadJSModule(const JSModule& info, bool withDependencies)
     return this->EngineReady;
 }
 
+
 //------------------------------------------------------------------------------
+// Description:
+// Internal function used for loading into the engine context a JavaScript
+// source file whose path is `filePath`. The loaded source file must contain a
+// function named `vegascene_template`. The elements of the `argList` parameter
+// are passed, as function arguments to `vegascene_template`.
+// The arguments pushed into `argList` can be of two types: the name of an
+// object that must be already defined inside the engine or the unqualified
+// name of a property of any object. In the latter case the name must be
+// prepended with a dot “.”. In this way `LoadJSTemplate` function can discern
+// between object names and property names.
+// In fact for each string representing an object name the `LoadJSTemplate`
+// function creates a QJSValue instance which refers to such an object, and
+// passes it as an argument to `vegascene_template` in place of the object name
+// string. Each string representing a property name is passed “as is” (except
+// that for removing the heading dot) to `vegascene_template`.
 bool VegaScene::LoadJSTemplate(const String& filePath,
-                                         const String & arg1,
-                                         const String & arg2,
-                                         const String & arg3,
-                                         const String & arg4,
-                                         const String & arg5)
+                                 const String & arg1,
+                                 const String & arg2,
+                                 const String & arg3,
+                                 const String & arg4,
+                                 const String & arg5)
 {
     ArgListType argList;
     const String* args[5] = {&arg1, &arg2, &arg3, &arg4, &arg5};
@@ -411,9 +461,10 @@ bool VegaScene::LoadJSTemplate(const String& filePath,
     return this->LoadJSTemplate(filePath, argList);
 }
 
+
 //------------------------------------------------------------------------------
 bool VegaScene::LoadJSTemplate(const String& filePath,
-                                         const ArgListType & argList)
+                               const ArgListType & argList)
 {
     if ( !(this->EngineReady) ) return false;
 
@@ -436,7 +487,8 @@ bool VegaScene::LoadJSTemplate(const String& filePath,
             if (!this->EngineReady)
             {
 #ifdef DEBUG
-                std::cerr << "In loading JavaScript template: " << filePath << "\n"
+                std::cerr << "In loading JavaScript template: "
+                          << filePath << "\n"
                           << "error: in reading argument '" << *it << "': "
                           << arg.toString().toStdString() << std::endl;
 #endif
@@ -448,7 +500,7 @@ bool VegaScene::LoadJSTemplate(const String& filePath,
 
     this->EngineReady = this->LoadJSLib(filePath);
     QJSValue templateFunc = this->Engine.evaluate("vegascene_template");
-    this->EngineReady = !templateFunc.isError() && templateFunc.isCallable();
+    this->EngineReady = !templateFunc.isError();
     if (this->EngineReady)
     {
         this->EngineReady = templateFunc.isCallable();
@@ -459,7 +511,8 @@ bool VegaScene::LoadJSTemplate(const String& filePath,
 #ifdef DEBUG
             if (!this->EngineReady)
             {
-                std::cerr << "In loading JavaScript template: " << filePath << "\n"
+                std::cerr << "In loading JavaScript template: "
+                          << filePath << "\n"
                           << "error: in instantiating template: "
                           << result.toString().toStdString() << std::endl;
             }
@@ -613,6 +666,7 @@ void VegaScene::DefineProperty(const String& name)
         vs.setProperty(propName, this->Engine.newObject());
     }
 }
+
 
 //------------------------------------------------------------------------------
 String VegaScene::GetQualifiedName( const char* name ) const

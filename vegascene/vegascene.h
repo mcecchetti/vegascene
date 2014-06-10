@@ -108,7 +108,6 @@ private:
 
     bool ReadFile(const String& filePath, String& fileContent) const;
 
-private:
     static String SetPreLoadConfig();
     static String SetPostLoadConfig();
 
@@ -124,6 +123,9 @@ private:
     String GetQualifiedName( const char* name ) const;
 
 private:
+    // Description:
+    // Names of JavaScript variables, representing objects or functions,
+    // which will be defined in the JavaScript engine context.
     static const char* JSVarCallbackManagerName;
     static const char* JSVarContext2dName;
     static const char* JSVarDataLoaderName;
@@ -133,18 +135,45 @@ private:
     static const char* JSFuncRenderName;
 
 private:
+    // The JavaScript engine instance.
     JSEngine Engine;
+
+    // The generated scene graph in JSON format
     String Result;
+
+    // A status attribute flag used for signaling if an error occurred.
     bool EngineReady;
+
+    // A status attribute flag used for signaling if initialization has been
+    // performed.
     bool Initialized;
+
+    // A status attribute flag used for signaling if spec file has been loaded.
     bool SpecLoaded;
+
+    // A status attribute flag used for signaling if the scene graph has been
+    // generated successfully.
     bool Rendered;
+
+    // A structure containing information for loading the Vega module.
     JSModule JSModuleVega;
+
+    // A C++ object used as a back-end for the `(window.)setTimeout` function.
     JSCallbackManager CallbackManager;
+
+    // A C++ object used as a back-end for the `context2d.measureText` function.
     JSContext2d Context2d;
+
+    // A C++ object used as a back-end for loading data resources.
     Data DataLoader;
+
+    // A base url used for retrieving data resources.
     String BaseURL;
+
+    // The vegascene namespace.
     String JSVarNamespace;
+
+    // A C++ object used as a back-end for the `console.log` funtion.
     JSConsole Console;
 };
 
