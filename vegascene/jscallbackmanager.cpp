@@ -28,7 +28,8 @@ void JSCallbackManager::WaitForFinished()
 {
     if ( !(this->Finished) )
     {
-        JSCallbackManager::WatcherContainer::const_iterator it = this->Watchers.constBegin();
+        typedef JSCallbackManager::WatcherContainer::const_iterator CIterator;
+        CIterator it = this->Watchers.constBegin();
         while (it != this->Watchers.constEnd())
         {
             if (*it != NULL)

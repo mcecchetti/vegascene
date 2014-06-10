@@ -13,7 +13,11 @@
 
 
 //------------------------------------------------------------------------------
+// Regular expression used to check if a given url is defined with a protocol
+// or it is a simple file path.
 const char* Data::LoadProtocolRE = "^[A-Za-z]+\:\/\/.*";
+
+// The protocol used for absolute file paths.
 const char* Data::LoadFileProtocol = "file://";
 
 
@@ -39,7 +43,7 @@ void Data::Load(const QString& uri, const QJSValue& callback) const
     {
         Data::LoadFile(url, callback);
     }
-    else
+    else // At present only local data resources are handled.
     {
         std::cerr << "error: while executing Data::Load: uri ("
                   << uri.toStdString() << ") not supported." << std::endl;
@@ -48,6 +52,8 @@ void Data::Load(const QString& uri, const QJSValue& callback) const
 
 
 //------------------------------------------------------------------------------
+// Internal function used for checking if the given url is defined with a
+// protocol.
 bool Data::HasProtocol(const QString& url)
 {
     QRegExp re(Data::LoadProtocolRE);
@@ -56,6 +62,8 @@ bool Data::HasProtocol(const QString& url)
 
 
 //------------------------------------------------------------------------------
+// Internal function used for checking if a given url is defined with the file
+// protocol (i.e., `file://`).
 bool Data::IsFile(const QString& url)
 {
     QString fileProtocol(Data::LoadFileProtocol);
@@ -94,13 +102,11 @@ void Data::ReadFile(const QString& filePath, const QJSValue& callback)
     QTextStream stream(&file);
     QString contents = stream.readAll();
     file.close();
-    //std::cout << "log: Data::ReadFile: read data content:\n"
-    //          << contents.toStdString() << std::endl;
 
     if (callback.isCallable())
     {
-        // that is needed since it is not possible to invoke `call`
-        // on a const reference
+        // The following trick is needed since it is not possible to invoke
+        // the `call` method for a const reference QJSValue.
         QJSValue callback_(callback);
         QJSValueList argList;
         argList.append(QJSValue::NullValue);

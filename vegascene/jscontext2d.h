@@ -1,3 +1,24 @@
+/*=========================================================================
+
+Program: Vegascene
+Module: jscontext2d.h
+
+Copyright (c) Marco Cecchetti
+All rights reserved.
+See Copyright.txt
+
+This software is distributed WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. See the above copyright notice for more information.
+
+=========================================================================*/
+// .NAME JSContext2d - class used as a back-end by the JavaScript Vega module,
+// .SECTION Description
+// This class is used as a C++ back-end by the JavaScript Vega module,
+// for supporting the `context2d.measureText` routine, used for computing text
+// width.
+
+
 #ifndef JSCONTEXT2D_H
 #define JSCONTEXT2D_H
 

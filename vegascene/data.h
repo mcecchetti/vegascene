@@ -1,3 +1,23 @@
+/*=========================================================================
+
+Program: Vegascene
+Module: data.h
+
+Copyright (c) Marco Cecchetti
+All rights reserved.
+See Copyright.txt
+
+This software is distributed WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. See the above copyright notice for more information.
+
+=========================================================================*/
+// .NAME Data - class used for handling data resource loading
+// .SECTION Description
+// This class is used as a C++ back-end by the JavaScript Vega module,
+// for loading data resources referenced in spec files.
+
+
 #ifndef DATA_H
 #define DATA_H
 
@@ -18,6 +38,9 @@ public:
     void SetBaseURL(const QString& baseURL);
 
 public slots:
+    // Description:
+    // Read a data resource file referenced through the passed uri and invoke
+    // the passed callback with argument the data file content.
     void Load(const QString& uri, const QJSValue& callback) const;
 
 private:
@@ -34,6 +57,7 @@ public:
     static const char* LoadFileProtocol;
 
 private:
+    // A base url used for retrieving data resources.
     QString BaseURL;
 };
 
