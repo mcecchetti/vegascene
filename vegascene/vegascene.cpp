@@ -21,28 +21,16 @@
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarCallbackManagerName = "timeoutBackend";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarContext2dName = "context2d";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarDataLoaderName = "data";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarSpecContentName = "specContent";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarResultName = "outSceneGraph";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSFuncRenderName = "render";
+const char* VegaScene::JSVarCallbackManagerName = "timeoutBackend";
+const char* VegaScene::JSVarContext2dName = "context2d";
+const char* VegaScene::JSVarDataLoaderName = "data";
+const char* VegaScene::JSVarSpecContentName = "specContent";
+const char* VegaScene::JSVarResultName = "outSceneGraph";
+const char* VegaScene::JSFuncRenderName = "render";
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-VegaScene<JSEngine>::VegaScene()
+VegaScene::VegaScene()
     : Engine(),
       Result(),
       EngineReady(true),
@@ -92,8 +80,7 @@ VegaScene<JSEngine>::VegaScene()
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::LoadSpec(const String& spec)
+bool VegaScene::LoadSpec(const String& spec)
 {
     this->SpecLoaded = false;
     if (!(this->Initialized)) return false;
@@ -115,8 +102,7 @@ bool VegaScene<JSEngine>::LoadSpec(const String& spec)
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::LoadSpecFromFile(const String& filePath)
+bool VegaScene::LoadSpecFromFile(const String& filePath)
 {
     this->SpecLoaded = false;
     if ( !(this->Initialized) ) return false;
@@ -138,16 +124,14 @@ bool VegaScene<JSEngine>::LoadSpecFromFile(const String& filePath)
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-const String& VegaScene<JSEngine>::GetBaseURL() const
+const String& VegaScene::GetBaseURL() const
 {
     return this->BaseURL;
 }
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-void VegaScene<JSEngine>::SetBaseURL(const String& baseURL)
+void VegaScene::SetBaseURL(const String& baseURL)
 {
     QString newBaseURL = QString::fromStdString(baseURL);
     QRegExp re(Data::LoadProtocolRE);
@@ -172,8 +156,7 @@ void VegaScene<JSEngine>::SetBaseURL(const String& baseURL)
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::Render()
+bool VegaScene::Render()
 {
     this->Rendered = false;
     if( !(this->Initialized) ) return false;
@@ -210,8 +193,7 @@ bool VegaScene<JSEngine>::Render()
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-const String& VegaScene<JSEngine>::GetResult()
+const String& VegaScene::GetResult()
 {
     if (this->Rendered)
     {
@@ -226,8 +208,7 @@ const String& VegaScene<JSEngine>::GetResult()
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::Write(const String& filePath)
+bool VegaScene::Write(const String& filePath)
 {
     if (this->Rendered)
     {
@@ -263,8 +244,7 @@ bool VegaScene<JSEngine>::Write(const String& filePath)
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::SafeEvaluate(const String& code, String* result)
+bool VegaScene::SafeEvaluate(const String& code, String* result)
 {
     if (!(this->EngineReady)) return false;
     QJSValue res = this->Engine.evaluate(QString::fromStdString(code));
@@ -292,9 +272,8 @@ bool VegaScene<JSEngine>::SafeEvaluate(const String& code, String* result)
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
 template< typename T >
-bool VegaScene<JSEngine>::InjectNonJSObject(T& object, String varName)
+bool VegaScene::InjectNonJSObject(T& object, String varName)
 {
     if( !(this->EngineReady) ) return false;
     QJSValue jsObject = this->Engine.newQObject(&object);
@@ -306,8 +285,7 @@ bool VegaScene<JSEngine>::InjectNonJSObject(T& object, String varName)
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::LoadJSLib(const String& pathToLib)
+bool VegaScene::LoadJSLib(const String& pathToLib)
 {
     if ( !(this->EngineReady) ) return false;
 
@@ -332,8 +310,7 @@ bool VegaScene<JSEngine>::LoadJSLib(const String& pathToLib)
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::LoadJSModule(const JSModule& info, bool withDependencies)
+bool VegaScene::LoadJSModule(const JSModule& info, bool withDependencies)
 {
     if ( !(this->EngineReady) ) return false;
     if (withDependencies)
@@ -402,8 +379,7 @@ bool VegaScene<JSEngine>::LoadJSModule(const JSModule& info, bool withDependenci
 }
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::LoadJSTemplate(const String& filePath,
+bool VegaScene::LoadJSTemplate(const String& filePath,
                                          const String & arg1,
                                          const String & arg2,
                                          const String & arg3,
@@ -421,8 +397,7 @@ bool VegaScene<JSEngine>::LoadJSTemplate(const String& filePath,
 }
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::LoadJSTemplate(const String& filePath,
+bool VegaScene::LoadJSTemplate(const String& filePath,
                                          const ArgListType & argList)
 {
     if ( !(this->EngineReady) ) return false;
@@ -498,8 +473,7 @@ bool VegaScene<JSEngine>::LoadJSTemplate(const String& filePath,
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-bool VegaScene<JSEngine>::ReadFile(const String& filePath, String& fileContent) const
+bool VegaScene::ReadFile(const String& filePath, String& fileContent) const
 {
     QFile scriptFile(QString::fromStdString(filePath));
     if (!scriptFile.open(QIODevice::ReadOnly))
@@ -526,8 +500,7 @@ String PrependPropFlag(const char* name)
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-void VegaScene<JSEngine>::SetJSFunctionSetTimeoutDef()
+void VegaScene::SetJSFunctionSetTimeoutDef()
 {
     String timeoutBackend = this->GetQualifiedName(VegaScene::JSVarCallbackManagerName);
     this->LoadJSTemplate("../jslib/setTimeout.js", timeoutBackend);
@@ -535,8 +508,7 @@ void VegaScene<JSEngine>::SetJSFunctionSetTimeoutDef()
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-void VegaScene<JSEngine>::SetJSFunctionRenderDef()
+void VegaScene::SetJSFunctionRenderDef()
 {
     String render = PrependPropFlag(VegaScene::JSFuncRenderName);
     String outSceneGraph = PrependPropFlag(VegaScene::JSVarResultName);
@@ -546,8 +518,7 @@ void VegaScene<JSEngine>::SetJSFunctionRenderDef()
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-void VegaScene<JSEngine>::SetJSObjConsole()
+void VegaScene::SetJSObjConsole()
 {
     String consoleBackend = this->GetQualifiedName("console");
     this->LoadJSTemplate("../jslib/console.js", consoleBackend);
@@ -555,8 +526,7 @@ void VegaScene<JSEngine>::SetJSObjConsole()
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-void VegaScene<JSEngine>::setJSObjContext2d()
+void VegaScene::setJSObjContext2d()
 {
     String context2dBackend = PrependPropFlag(VegaScene::JSVarContext2dName);
     this->LoadJSTemplate("../jslib/vegascene.canvas.js",
@@ -566,8 +536,7 @@ void VegaScene<JSEngine>::setJSObjContext2d()
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-void VegaScene<JSEngine>::SetJSFuncDataLoad()
+void VegaScene::SetJSFuncDataLoad()
 {
     String dataLoadBackend = this->GetQualifiedName(VegaScene::JSVarDataLoaderName);
     this->LoadJSTemplate("../jslib/vega.data.load.js", dataLoadBackend);
@@ -575,8 +544,7 @@ void VegaScene<JSEngine>::SetJSFuncDataLoad()
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-void VegaScene<JSEngine>::DefineNamespace()
+void VegaScene::DefineNamespace()
 {
     QJSValue globalObject = this->Engine.globalObject();
     while (globalObject.hasProperty(QString::fromStdString(this->JSVarNamespace)))
@@ -590,8 +558,7 @@ void VegaScene<JSEngine>::DefineNamespace()
 
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-void VegaScene<JSEngine>::DefineProperty(const String& name)
+void VegaScene::DefineProperty(const String& name)
 {
     QString propName = QString::fromStdString(name);
     QJSValue globalObject = this->Engine.globalObject();
@@ -603,8 +570,7 @@ void VegaScene<JSEngine>::DefineProperty(const String& name)
 }
 
 //------------------------------------------------------------------------------
-template< typename JSEngine >
-String VegaScene<JSEngine>::GetQualifiedName( const char* name ) const
+String VegaScene::GetQualifiedName( const char* name ) const
 {
     return this->JSVarNamespace + String(".") + String(name);
 }
@@ -617,7 +583,7 @@ int vegascene(const String& specFilePath,
               const String& outFilePath,
               const String& baseURL)
 {
-    VegaScene<QJSEngine> vs;
+    VegaScene vs;
     vs.SetBaseURL(baseURL);
 #ifdef DEBUG
     std::cout << "Base URL: " << vs.GetBaseURL() << std::endl;
