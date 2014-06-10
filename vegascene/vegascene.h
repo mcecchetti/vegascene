@@ -1,45 +1,22 @@
 #ifndef VEGASCENE_H
 #define VEGASCENE_H
 
+
+
 #include "jscallbackmanager.h"
 #include "jscontext2d.h"
 #include "data.h"
 #include "jsconsole.h"
+#include "jsmodule.h"
 
 #include <string>
 #include <vector>
 
 
+
+
 typedef std::string String;
 typedef std::vector<String> ArgListType;
-
-
-
-class JSModule
-{
-public:
-    typedef std::vector<JSModule> DependenciesListType;
-
-public:
-    JSModule( const String& ns, const String& path )
-        : NameSpace( ns ), FilePath( path )
-    {
-    }
-
-    void AddRequiredModule( const JSModule& module )
-    {
-        Dependencies.push_back( module );
-    }
-
-public:
-    String NameSpace;
-    String FilePath;
-    DependenciesListType Dependencies;
-    String preLoadConfig;
-    String postLoadConfig;
-};
-
-
 
 
 template< typename JSEngine >

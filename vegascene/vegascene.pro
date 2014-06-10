@@ -30,7 +30,8 @@ SOURCES += main.cpp \
     vegascene.cpp \
     jsconsole.cpp \
     data.cpp \
-    jscontext2d.cpp
+    jscontext2d.cpp \
+    jsmodule.cpp
 
 HEADERS += \
     vegascene.h \
@@ -38,4 +39,5 @@ HEADERS += \
     jscallbackmanager.h \
     jsconsole.h \
     data.h \
-    jscontext2d.h
+    jscontext2d.h \
+    jsmodule.h
