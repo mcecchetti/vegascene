@@ -70,21 +70,35 @@ VegaScene::VegaScene()
     this->LoadJSLib(JSLIB_PATH(d3.geo.projection.min.js));
 #endif
 
+    // Define object `vegascene = {}` inside the engine.
     this->DefineNamespace();
 
+    // Initialize `console.log` js function using the Console object as a
+    // back-end.
     this->InjectNonJSObject(this->Console, "console");
     SetJSObjConsole();
 
-    this->InjectNonJSObject(this->CallbackManager, VegaScene::JSVarCallbackManagerName);
-    SetJSFunctionSetTimeoutDef();
+    // Initialize `(window.)setTimeout` js function using the CallbackManager
+    // object as a back-end.
+    this->InjectNonJSObject(this->CallbackManager,
+                            VegaScene::JSVarCallbackManagerName);
+    SetJSFuncSetTimeout();
 
+    // Initialize `context2d` js object using the Context2d object as a
+    // back-end.
     this->InjectNonJSObject(this->Context2d, VegaScene::JSVarContext2dName);
     SetJSObjContext2d();
 
+    // Initialize data loading routines using the DataLoader object as a
+    // back-end.
     this->InjectNonJSObject(this->DataLoader, VegaScene::JSVarDataLoaderName);
     SetJSFuncDataLoad();
 
-    SetJSFunctionRenderDef();
+    // Define `render` function which starts the generation of the scene graph.
+    SetJSFuncRender();
+
+    // Define `run` function which parses spec and passes it to `render`.
+    SetJSFuncRun();
 
     this->Initialized = this-> EngineReady;
 }
@@ -96,7 +110,8 @@ bool VegaScene::LoadSpec(const String& spec)
     this->SpecLoaded = false;
     if (!(this->Initialized)) return false;
 
-    QJSValue nsObject = this->Engine.globalObject().property(QString::fromStdString(this->JSVarNamespace));
+    QString ns = QString::fromStdString(this->JSVarNamespace);
+    QJSValue nsObject = this->Engine.globalObject().property(ns);
     QString varName = QString::fromLatin1(VegaScene::JSVarSpecContentName);
     QJSValue specObj(QString::fromStdString(spec));
     nsObject.setProperty(varName, specObj);
@@ -116,16 +131,16 @@ bool VegaScene::LoadSpec(const String& spec)
 bool VegaScene::LoadSpecFromFile(const String& filePath)
 {
     this->SpecLoaded = false;
-    if ( !(this->Initialized) ) return false;
+    if (!(this->Initialized)) return false;
 
     String spec;
-    if (ReadFile(filePath, spec))
+    if (this->ReadFile(filePath, spec))
     {
         if (spec.empty())
         {
             spec = String("{}");
         }
-        return LoadSpec(spec);
+        return this->LoadSpec(spec);
     }
     else
     {
@@ -173,30 +188,16 @@ bool VegaScene::Render()
     if( !(this->Initialized) ) return false;
     if( !(this->SpecLoaded) ) return false;
 
-    String qJSVarResult = this->GetQualifiedName(VegaScene::JSVarResultName);
-    String qJSVarSpecContent = this->GetQualifiedName(VegaScene::JSVarSpecContentName);
-    String qJSFuncRender = this->GetQualifiedName(VegaScene::JSFuncRenderName);
-    String qJSFuncRun = this->GetQualifiedName("run");
-
-    // program:
-    // vegascene.run = function(){
-    //      vegascene.outSceneGraph = 0;
-    //      var spec = JSON.parse(vegascene.specContent);
-    //      render(spec);
-    // };
-    // vegascene.run();
     String program;
-    program += qJSFuncRun + String(" = function(){");
-    program += qJSVarResult + String(" = 0; ");
-    program += String("var spec = JSON.parse(") + qJSVarSpecContent + String("); ");
-    program += qJSFuncRender + String("(spec); };");
-    program += qJSFuncRun + String("();");
+    program += this->GetQualifiedName("run") + String("();");
     this->Rendered = this->SafeEvaluate(program);
+
+    // Callback execution can start.
     CallbackManager.WakeAll();
 #ifdef DEBUG
     if (this->Rendered)
     {
-        std::cout << "Rendered!" << std::endl;
+        std::cout << "log: Scene graph has been rendered!" << std::endl;
     }
 #endif
     return this->Rendered;
@@ -208,7 +209,9 @@ const String& VegaScene::GetResult()
 {
     if (this->Rendered)
     {
+        // Wait to evaluate result for callback end.
         this->CallbackManager.WaitForFinished();
+
         String qJSVarResult = this->GetQualifiedName(VegaScene::JSVarResultName);
         String program;
         program += String("JSON.stringify(") + qJSVarResult + String(", null, 2)");
@@ -230,6 +233,7 @@ bool VegaScene::Write(const String& filePath)
             std::cout << "Scene Graph in JSON formmat: " << std::endl;
 #endif
             std::cout << output << std::endl;
+            return true;
         }
         else
         {
@@ -528,7 +532,7 @@ String PrependPropFlag(const char* name)
 
 
 //------------------------------------------------------------------------------
-void VegaScene::SetJSFunctionSetTimeoutDef()
+void VegaScene::SetJSFuncSetTimeout()
 {
     String timeoutBackend = this->GetQualifiedName(VegaScene::JSVarCallbackManagerName);
     this->LoadJSTemplate(JSLIB_PATH(setTimeout.js), timeoutBackend);
@@ -536,12 +540,25 @@ void VegaScene::SetJSFunctionSetTimeoutDef()
 
 
 //------------------------------------------------------------------------------
-void VegaScene::SetJSFunctionRenderDef()
+void VegaScene::SetJSFuncRender()
 {
     String render = PrependPropFlag(VegaScene::JSFuncRenderName);
     String outSceneGraph = PrependPropFlag(VegaScene::JSVarResultName);
     this->LoadJSTemplate(JSLIB_PATH(vegascene.render.js),
                          this->JSVarNamespace, render, outSceneGraph);
+}
+
+
+//------------------------------------------------------------------------------
+void VegaScene::SetJSFuncRun()
+{
+    String outSceneGraph = PrependPropFlag(VegaScene::JSVarResultName);
+    String specContent = PrependPropFlag(VegaScene::JSVarSpecContentName);
+    String render = PrependPropFlag(VegaScene::JSFuncRenderName);
+    this->LoadJSTemplate(JSLIB_PATH(vegascene.run.js),
+                         this->JSVarNamespace, outSceneGraph,
+                         specContent, render);
+
 }
 
 

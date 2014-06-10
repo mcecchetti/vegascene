@@ -44,6 +44,10 @@ private:
     typedef QJSEngine JSEngine;
 
 public:
+    // Description:
+    // Create an instance of VegaScene. JavaScript modules and fragments
+    // loading, C++ back-ends creation and injection are performed at this
+    // stage.
     VegaScene();
 
     // Description:
@@ -108,11 +112,12 @@ private:
     static String SetPreLoadConfig();
     static String SetPostLoadConfig();
 
-    void SetJSFunctionSetTimeoutDef();
-    void SetJSFunctionRenderDef();
+    void SetJSFuncSetTimeout();
+    void SetJSFuncRender();
     void SetJSObjContext2d();
     void SetJSFuncDataLoad();
     void SetJSObjConsole();
+    void SetJSFuncRun();
 
     void DefineNamespace();
     void DefineProperty(const String& name);
