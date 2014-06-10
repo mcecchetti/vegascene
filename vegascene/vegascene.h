@@ -132,26 +132,6 @@ private:
 };
 
 
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarCallbackManagerName = "timeoutBackend";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarContext2dName = "context2d";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarDataLoaderName = "data";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarSpecContentName = "specContent";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSVarResultName = "outSceneGraph";
-
-template< typename JSEngine >
-const char* VegaScene<JSEngine>::JSFuncRenderName = "render";
-
-
-
 
 int vegascene(const String& specFilePath,
               const String& outFilePath = String(""),
