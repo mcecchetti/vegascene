@@ -39,7 +39,7 @@ VegaScene::VegaScene()
       Rendered(false),
       JSModuleVega("vg", "../jsmodules/vega.js"),
       CallbackManager(),
-      Context2d(Engine),
+      Context2d(),
       DataLoader(),
       BaseURL(""),
       JSVarNamespace("vegascene"),

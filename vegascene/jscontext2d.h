@@ -5,12 +5,9 @@
 #include <QObject>
 #include <QString>
 #include <QFont>
-#include <QJSEngine>
-#include <QJSValue>
+#include <QVariantMap>
 
 
-
-typedef QJSEngine JSEngine;
 
 
 class JSContext2d : public QObject
@@ -20,7 +17,7 @@ class JSContext2d : public QObject
     Q_PROPERTY(QString textAlign READ GetTextAlign WRITE SetTextAlign)
     Q_PROPERTY(QString textBaseline READ GetTextBaseline WRITE SetTextBaseline)
 public:
-    JSContext2d(JSEngine& engine);
+    JSContext2d();
 
     void SetFontFamily(const QString& value);
     void SetFontVariant(const QString& value);
@@ -37,11 +34,9 @@ public:
     const QString& GetTextBaseline() const;
     void SetTextBaseline(const QString& value);
 
-public slots:
-    QJSValue measureText(const QString& text);
+    Q_INVOKABLE QVariantMap measureText(const QString& text);
 
 private:
-    JSEngine& Engine;
     QFont Font;
     QString TextAlign;
     QString TextBaseline;

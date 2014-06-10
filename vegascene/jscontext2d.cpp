@@ -5,6 +5,7 @@
 #include <QFontMetrics>
 #include <QRegExp>
 #include <QStringList>
+#include <QVariantMap>
 
 #include <iostream>
 
@@ -21,8 +22,8 @@ const char* JSContext2d::name  = "'[^']+'|\"[^\"]+\"|[\\w-]+";
 
 
 //------------------------------------------------------------------------------
-JSContext2d::JSContext2d(JSEngine& engine)
-    : Engine(engine), Font()
+JSContext2d::JSContext2d()
+    : Font()
 {}
 
 
@@ -245,7 +246,6 @@ void JSContext2d::SetFont(const QString& value)
 
 
 //------------------------------------------------------------------------------
-
 const QString& JSContext2d::GetTextAlign() const
 {
     return this->TextAlign;
@@ -260,7 +260,6 @@ void JSContext2d::SetTextAlign(const QString& value)
 
 
 //------------------------------------------------------------------------------
-
 const QString& JSContext2d::GetTextBaseline() const
 {
     return this->TextBaseline;
@@ -275,10 +274,11 @@ void JSContext2d::SetTextBaseline(const QString& value)
 
 
 //------------------------------------------------------------------------------
-QJSValue JSContext2d::measureText(const QString& text)
+QVariantMap JSContext2d::measureText(const QString& text)
 {
     int textWidth = 0;
-    if (!text.isEmpty()) {
+    if (!text.isEmpty())
+    {
         QFontMetrics fm(this->Font);
         textWidth = fm.width(text);
     }
@@ -286,7 +286,7 @@ QJSValue JSContext2d::measureText(const QString& text)
     std::cout << "text: >" << text.toStdString()
               << "<, width: " << textWidth << "\n";
 #endif
-    QJSValue result = this->Engine.newObject();
-    result.setProperty("width", QJSValue(textWidth));
-    return result;
+    QVariantMap textExtents;
+    textExtents.insert("width", textWidth);
+    return textExtents;
 }

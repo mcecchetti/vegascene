@@ -29,6 +29,8 @@ PURPOSE. See the above copyright notice for more information.
 #include "jsconsole.h"
 #include "jsmodule.h"
 
+#include <QJSEngine>
+
 #include <string>
 #include <vector>
 
