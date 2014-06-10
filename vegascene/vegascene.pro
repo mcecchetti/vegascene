@@ -24,14 +24,15 @@ CONFIG(debug, debug|release) {
 QMAKE_CXXFLAGS += -std=c++98 -Wall
 
 
-SOURCES += main.cpp \
-    jscallback.cpp \
-    jscallbackmanager.cpp \
-    vegascene.cpp \
-    jsconsole.cpp \
-    data.cpp \
-    jscontext2d.cpp \
-    jsmodule.cpp
+SOURCES += \
+    data.cxx \
+    jscallback.cxx \
+    jscallbackmanager.cxx \
+    jsconsole.cxx \
+    jscontext2d.cxx \
+    jsmodule.cxx \
+    main.cxx \
+    vegascene.cxx
 
 HEADERS += \
     vegascene.h \
