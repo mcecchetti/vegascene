@@ -15,7 +15,7 @@
 //------------------------------------------------------------------------------
 // Regular expression used to check if a given url is defined with a protocol
 // or it is a simple file path.
-const char* Data::LoadProtocolRE = "^[A-Za-z]+\:\/\/.*";
+const char* Data::LoadProtocolRE = "^[A-Za-z]+\\:\\/\\/.*";
 
 // The protocol used for absolute file paths.
 const char* Data::LoadFileProtocol = "file://";
