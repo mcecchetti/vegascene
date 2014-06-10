@@ -68,7 +68,7 @@ VegaScene::VegaScene()
     SetJSFunctionSetTimeoutDef();
 
     this->InjectNonJSObject(this->Context2d, VegaScene::JSVarContext2dName);
-    setJSObjContext2d();
+    SetJSObjContext2d();
 
     this->InjectNonJSObject(this->DataLoader, VegaScene::JSVarDataLoaderName);
     SetJSFuncDataLoad();
@@ -492,6 +492,23 @@ bool VegaScene::ReadFile(const String& filePath, String& fileContent) const
 
 
 //------------------------------------------------------------------------------
+String VegaScene::SetPreLoadConfig()
+{
+    String sourcePath("../jslib/vega.preload.config.js");
+    return sourcePath;
+}
+
+
+//------------------------------------------------------------------------------
+String VegaScene::SetPostLoadConfig()
+{
+    String sourcePath("../jslib/vega.postload.config.js");
+    return sourcePath;
+}
+
+
+
+//------------------------------------------------------------------------------
 String PrependPropFlag(const char* name)
 {
     String flaggedName = String(".") + String(name);
@@ -526,7 +543,7 @@ void VegaScene::SetJSObjConsole()
 
 
 //------------------------------------------------------------------------------
-void VegaScene::setJSObjContext2d()
+void VegaScene::SetJSObjContext2d()
 {
     String context2dBackend = PrependPropFlag(VegaScene::JSVarContext2dName);
     this->LoadJSTemplate("../jslib/vegascene.canvas.js",

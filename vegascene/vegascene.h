@@ -103,21 +103,12 @@ private:
     bool ReadFile(const String& filePath, String& fileContent) const;
 
 private:
-    static String SetPreLoadConfig()
-    {
-        String sourcePath("../jslib/vega.preload.config.js");
-        return sourcePath;
-    }
-
-    static String SetPostLoadConfig()
-    {
-        String sourcePath("../jslib/vega.postload.config.js");
-        return sourcePath;
-    }
+    static String SetPreLoadConfig();
+    static String SetPostLoadConfig();
 
     void SetJSFunctionSetTimeoutDef();
     void SetJSFunctionRenderDef();
-    void setJSObjContext2d();
+    void SetJSObjContext2d();
     void SetJSFuncDataLoad();
     void SetJSObjConsole();
 
