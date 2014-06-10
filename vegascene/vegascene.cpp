@@ -19,6 +19,17 @@
 #include <vector>
 
 
+//------------------------------------------------------------------------------
+#define JSMODULE_BASE_PATH "../jsmodules/"
+#define JSMODULE_PATH(NAME) \
+     JSMODULE_BASE_PATH #NAME ".js"
+
+
+//------------------------------------------------------------------------------
+#define JSLIB_BASE_PATH "../jslib/"
+#define JSLIB_PATH(NAME) \
+     JSLIB_BASE_PATH #NAME
+
 
 //------------------------------------------------------------------------------
 const char* VegaScene::JSVarCallbackManagerName = "timeoutBackend";
@@ -37,7 +48,7 @@ VegaScene::VegaScene()
       Initialized(false),
       SpecLoaded(false),
       Rendered(false),
-      JSModuleVega("vg", "../jsmodules/vega.js"),
+      JSModuleVega("vg", JSMODULE_PATH(vega)),
       CallbackManager(),
       Context2d(),
       DataLoader(),
@@ -45,10 +56,10 @@ VegaScene::VegaScene()
       JSVarNamespace("vegascene"),
       Console()
 {
-    JSModule d3("d3", "../jsmodules/d3.js");
+    JSModule d3("d3", JSMODULE_PATH(d3));
     this->JSModuleVega.AddRequiredModule(d3);
 #ifdef WITH_TOPOJSON
-    JSModule tj("topojson", "../jsmodules/topojson.js");
+    JSModule tj("topojson", JSMODULE_PATH(topojson));
     this->JSModuleVega.AddRequiredModule(tj);
 #endif
     this->JSModuleVega.preLoadConfig = VegaScene::SetPreLoadConfig();
@@ -56,7 +67,7 @@ VegaScene::VegaScene()
     this->LoadJSModule(this->JSModuleVega);
 
 #ifdef WITH_EXAMPLE_LIBS
-    this->LoadJSLib("../jslib/d3.geo.projection.min.js");
+    this->LoadJSLib(JSLIB_PATH(d3.geo.projection.min.js));
 #endif
 
     this->DefineNamespace();
@@ -494,7 +505,7 @@ bool VegaScene::ReadFile(const String& filePath, String& fileContent) const
 //------------------------------------------------------------------------------
 String VegaScene::SetPreLoadConfig()
 {
-    String sourcePath("../jslib/vega.preload.config.js");
+    String sourcePath(JSLIB_PATH(vega.preload.config.js));
     return sourcePath;
 }
 
@@ -502,7 +513,7 @@ String VegaScene::SetPreLoadConfig()
 //------------------------------------------------------------------------------
 String VegaScene::SetPostLoadConfig()
 {
-    String sourcePath("../jslib/vega.postload.config.js");
+    String sourcePath(JSLIB_PATH(vega.postload.config.js));
     return sourcePath;
 }
 
@@ -520,7 +531,7 @@ String PrependPropFlag(const char* name)
 void VegaScene::SetJSFunctionSetTimeoutDef()
 {
     String timeoutBackend = this->GetQualifiedName(VegaScene::JSVarCallbackManagerName);
-    this->LoadJSTemplate("../jslib/setTimeout.js", timeoutBackend);
+    this->LoadJSTemplate(JSLIB_PATH(setTimeout.js), timeoutBackend);
 }
 
 
@@ -529,7 +540,7 @@ void VegaScene::SetJSFunctionRenderDef()
 {
     String render = PrependPropFlag(VegaScene::JSFuncRenderName);
     String outSceneGraph = PrependPropFlag(VegaScene::JSVarResultName);
-    this->LoadJSTemplate("../jslib/vegascene.render.js",
+    this->LoadJSTemplate(JSLIB_PATH(vegascene.render.js),
                          this->JSVarNamespace, render, outSceneGraph);
 }
 
@@ -538,7 +549,7 @@ void VegaScene::SetJSFunctionRenderDef()
 void VegaScene::SetJSObjConsole()
 {
     String consoleBackend = this->GetQualifiedName("console");
-    this->LoadJSTemplate("../jslib/console.js", consoleBackend);
+    this->LoadJSTemplate(JSLIB_PATH(console.js), consoleBackend);
 }
 
 
@@ -546,7 +557,7 @@ void VegaScene::SetJSObjConsole()
 void VegaScene::SetJSObjContext2d()
 {
     String context2dBackend = PrependPropFlag(VegaScene::JSVarContext2dName);
-    this->LoadJSTemplate("../jslib/vegascene.canvas.js",
+    this->LoadJSTemplate(JSLIB_PATH(vegascene.canvas.js),
                          this->JSVarNamespace, context2dBackend);
 
 }
@@ -556,7 +567,7 @@ void VegaScene::SetJSObjContext2d()
 void VegaScene::SetJSFuncDataLoad()
 {
     String dataLoadBackend = this->GetQualifiedName(VegaScene::JSVarDataLoaderName);
-    this->LoadJSTemplate("../jslib/vega.data.load.js", dataLoadBackend);
+    this->LoadJSTemplate(JSLIB_PATH(vega.data.load.js), dataLoadBackend);
 }
 
 
