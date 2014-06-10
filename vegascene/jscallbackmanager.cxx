@@ -1,3 +1,18 @@
+/*=========================================================================
+
+Program: Vegascene
+Module: jscallbackmanager.cxx
+
+Copyright (c) Marco Cecchetti
+All rights reserved.
+See Copyright.txt
+
+This software is distributed WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. See the above copyright notice for more information.
+
+=========================================================================*/
+
 
 #include "jscallbackmanager.h"
 
