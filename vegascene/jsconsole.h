@@ -26,7 +26,7 @@ PURPOSE. See the above copyright notice for more information.
 
 #include <QObject>
 #include <QJSValue>
-#include <QJSValueIterator>
+
 
 
 class JSConsole : public QObject
@@ -40,8 +40,6 @@ public slots:
               const QJSValue & object,
               unsigned int maxDeep = 3) const;
 
-private:
-    void Indent(int n) const;
 };
 
 

@@ -16,9 +16,20 @@ PURPOSE. See the above copyright notice for more information.
 
 #include "jsconsole.h"
 
+#include <QJSValueIterator>
+
 #include <iostream>
 
 
+//------------------------------------------------------------------------------
+static
+void Indent(int n)
+{
+    while(n--)
+    {
+        std::cout << "  ";
+    }
+}
 
 
 //------------------------------------------------------------------------------
@@ -37,7 +48,7 @@ void JSConsole::View(const QString& name,
     if (deep > maxDeep) return;
     ++deep;
 
-    this->Indent(deep-2);
+    Indent(deep-2);
     if (object.isObject())
     {
         std::cout << name.toStdString() << ": {" << std::endl;
@@ -47,7 +58,7 @@ void JSConsole::View(const QString& name,
             it.next();
             this->View(it.name(), it.value(), maxDeep);
         }
-        this->Indent(deep-2);
+        Indent(deep-2);
         std::cout << "}" << std::endl;
     }
     else
@@ -57,14 +68,3 @@ void JSConsole::View(const QString& name,
     }
     --deep;
 }
-
-
-//------------------------------------------------------------------------------
-void JSConsole::Indent(int n) const
-{
-    while(n--)
-    {
-        std::cout << "  ";
-    }
-}
-
