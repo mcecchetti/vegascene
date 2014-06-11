@@ -55,6 +55,13 @@ public:
     const QString& GetTextBaseline() const;
     void SetTextBaseline(const QString& value);
 
+    // Description:
+    // Compute the width of the passed text. It needs that an instance of
+    // QGuiApplication (or of a derived class) exists before being invoked.
+    // Returns an instance of QVariantMap, which has a "width" key with
+    // associated the computed text value.
+    // Note: a QVariantMap instance is mapped by the JavaScript engine to
+    // a JavaScript object whose properties are the map keys.
     Q_INVOKABLE QVariantMap measureText(const QString& text);
 
 private:

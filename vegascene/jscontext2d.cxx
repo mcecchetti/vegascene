@@ -28,6 +28,7 @@ PURPOSE. See the above copyright notice for more information.
 
 
 //------------------------------------------------------------------------------
+// Font properties legal values.
 const char* JSContext2d::styles  = "normal|italic|oblique";
 const char* JSContext2d::variants  = "normal|small-caps";
 const char* JSContext2d::weights  = "normal|bold|bolder|lighter|[1-9]00";
@@ -132,7 +133,7 @@ void JSContext2d::SetFontSize(const QString& value)
 
     double size;
     QStringList captures = re.capturedTexts();
-    if (!captures[1].isEmpty()) {
+    if (!captures[1].isEmpty()) { // number + unit (e.g. `12pt`)
         size = captures[1].toDouble();
         const QString& unit = captures[2];
         if (unit == "in") {
@@ -146,7 +147,7 @@ void JSContext2d::SetFontSize(const QString& value)
         } else if (unit == "px") {
             size *= 0.75;
         }
-    } else if (!captures[3].isEmpty()) {
+    } else if (!captures[3].isEmpty()) { // predefined label (e.g. `x-large`)
         const QString& sz = captures[3];
         if (sz == "xx-small") {
             size = 7;
@@ -170,6 +171,7 @@ void JSContext2d::SetFontSize(const QString& value)
 
 
 //------------------------------------------------------------------------------
+// We do not really use this method.
 QString JSContext2d::GetFont() const
 {
     return this->Font.family();
@@ -230,6 +232,13 @@ void JSContext2d::SetFont(const QString& value)
 
     if (!isValid) return;
 
+    // There are 3 optional font properties: weight, style and variant.
+    // We do not not in which order they are specified, so we have 3 captures
+    // for each font property: captures 1, 4, 7 if not empty define a weight
+    // property; captures 2, 5, 8 if not empty define a style property; finally
+    // captures 3, 6, 9 if not empty define a variant property.
+    // In case more than a single property of the same type is specified the
+    // value of the last one is used for setting the related font property.
     for (int i = 0; i < 9; i+=3)
     {
         if (!captures[1+i].isEmpty()) {
