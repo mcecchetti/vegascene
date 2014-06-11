@@ -21,6 +21,7 @@ PURPOSE. See the above copyright notice for more information.
 #include "jsconsole.h"
 
 
+#include <QGuiApplication>
 #include <QtCore/qfile.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qstringlist.h>
@@ -71,6 +72,18 @@ VegaScene::VegaScene()
       JSVarNamespace("vegascene"),
       Console()
 {
+    // Check if a QtApplication instance exists.
+    if (!QGuiApplication::instance())
+    {
+#if DEBUG
+        std::cout << "error: "
+                "you must initialize a QApplication before using this class.\n";
+#endif
+        this->EngineReady = false;
+        return;
+    }
+
+    // Initialize Vega module and dependencies
     JSModule d3("d3", JSMODULE_PATH(d3));
     this->JSModuleVega.AddRequiredModule(d3);
 #ifdef WITH_TOPOJSON
@@ -115,7 +128,7 @@ VegaScene::VegaScene()
     // Define `run` function which parses spec and passes it to `render`.
     SetJSFuncRun();
 
-    this->Initialized = this-> EngineReady;
+    this->Initialized = this->EngineReady;
 }
 
 
