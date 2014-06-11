@@ -6262,6 +6262,560 @@
     };
     return identity;
   }
+  d3.svg = {};
+  d3.svg.arc = function() {
+    var innerRadius = d3_svg_arcInnerRadius, outerRadius = d3_svg_arcOuterRadius, startAngle = d3_svg_arcStartAngle, endAngle = d3_svg_arcEndAngle;
+    function arc() {
+      var r0 = innerRadius.apply(this, arguments), r1 = outerRadius.apply(this, arguments), a0 = startAngle.apply(this, arguments) + d3_svg_arcOffset, a1 = endAngle.apply(this, arguments) + d3_svg_arcOffset, da = (a1 < a0 && (da = a0, 
+      a0 = a1, a1 = da), a1 - a0), df = da < π ? "0" : "1", c0 = Math.cos(a0), s0 = Math.sin(a0), c1 = Math.cos(a1), s1 = Math.sin(a1);
+      return da >= d3_svg_arcMax ? r0 ? "M0," + r1 + "A" + r1 + "," + r1 + " 0 1,1 0," + -r1 + "A" + r1 + "," + r1 + " 0 1,1 0," + r1 + "M0," + r0 + "A" + r0 + "," + r0 + " 0 1,0 0," + -r0 + "A" + r0 + "," + r0 + " 0 1,0 0," + r0 + "Z" : "M0," + r1 + "A" + r1 + "," + r1 + " 0 1,1 0," + -r1 + "A" + r1 + "," + r1 + " 0 1,1 0," + r1 + "Z" : r0 ? "M" + r1 * c0 + "," + r1 * s0 + "A" + r1 + "," + r1 + " 0 " + df + ",1 " + r1 * c1 + "," + r1 * s1 + "L" + r0 * c1 + "," + r0 * s1 + "A" + r0 + "," + r0 + " 0 " + df + ",0 " + r0 * c0 + "," + r0 * s0 + "Z" : "M" + r1 * c0 + "," + r1 * s0 + "A" + r1 + "," + r1 + " 0 " + df + ",1 " + r1 * c1 + "," + r1 * s1 + "L0,0" + "Z";
+    }
+    arc.innerRadius = function(v) {
+      if (!arguments.length) return innerRadius;
+      innerRadius = d3_functor(v);
+      return arc;
+    };
+    arc.outerRadius = function(v) {
+      if (!arguments.length) return outerRadius;
+      outerRadius = d3_functor(v);
+      return arc;
+    };
+    arc.startAngle = function(v) {
+      if (!arguments.length) return startAngle;
+      startAngle = d3_functor(v);
+      return arc;
+    };
+    arc.endAngle = function(v) {
+      if (!arguments.length) return endAngle;
+      endAngle = d3_functor(v);
+      return arc;
+    };
+    arc.centroid = function() {
+      var r = (innerRadius.apply(this, arguments) + outerRadius.apply(this, arguments)) / 2, a = (startAngle.apply(this, arguments) + endAngle.apply(this, arguments)) / 2 + d3_svg_arcOffset;
+      return [ Math.cos(a) * r, Math.sin(a) * r ];
+    };
+    return arc;
+  };
+  var d3_svg_arcOffset = -halfπ, d3_svg_arcMax = τ - ε;
+  function d3_svg_arcInnerRadius(d) {
+    return d.innerRadius;
+  }
+  function d3_svg_arcOuterRadius(d) {
+    return d.outerRadius;
+  }
+  function d3_svg_arcStartAngle(d) {
+    return d.startAngle;
+  }
+  function d3_svg_arcEndAngle(d) {
+    return d.endAngle;
+  }
+  function d3_svg_line(projection) {
+    var x = d3_geom_pointX, y = d3_geom_pointY, defined = d3_true, interpolate = d3_svg_lineLinear, interpolateKey = interpolate.key, tension = .7;
+    function line(data) {
+      var segments = [], points = [], i = -1, n = data.length, d, fx = d3_functor(x), fy = d3_functor(y);
+      function segment() {
+        segments.push("M", interpolate(projection(points), tension));
+      }
+      while (++i < n) {
+        if (defined.call(this, d = data[i], i)) {
+          points.push([ +fx.call(this, d, i), +fy.call(this, d, i) ]);
+        } else if (points.length) {
+          segment();
+          points = [];
+        }
+      }
+      if (points.length) segment();
+      return segments.length ? segments.join("") : null;
+    }
+    line.x = function(_) {
+      if (!arguments.length) return x;
+      x = _;
+      return line;
+    };
+    line.y = function(_) {
+      if (!arguments.length) return y;
+      y = _;
+      return line;
+    };
+    line.defined = function(_) {
+      if (!arguments.length) return defined;
+      defined = _;
+      return line;
+    };
+    line.interpolate = function(_) {
+      if (!arguments.length) return interpolateKey;
+      if (typeof _ === "function") interpolateKey = interpolate = _; else interpolateKey = (interpolate = d3_svg_lineInterpolators.get(_) || d3_svg_lineLinear).key;
+      return line;
+    };
+    line.tension = function(_) {
+      if (!arguments.length) return tension;
+      tension = _;
+      return line;
+    };
+    return line;
+  }
+  d3.svg.line = function() {
+    return d3_svg_line(d3_identity);
+  };
+  var d3_svg_lineInterpolators = d3.map({
+    linear: d3_svg_lineLinear,
+    "linear-closed": d3_svg_lineLinearClosed,
+    step: d3_svg_lineStep,
+    "step-before": d3_svg_lineStepBefore,
+    "step-after": d3_svg_lineStepAfter,
+    basis: d3_svg_lineBasis,
+    "basis-open": d3_svg_lineBasisOpen,
+    "basis-closed": d3_svg_lineBasisClosed,
+    bundle: d3_svg_lineBundle,
+    cardinal: d3_svg_lineCardinal,
+    "cardinal-open": d3_svg_lineCardinalOpen,
+    "cardinal-closed": d3_svg_lineCardinalClosed,
+    monotone: d3_svg_lineMonotone
+  });
+  d3_svg_lineInterpolators.forEach(function(key, value) {
+    value.key = key;
+    value.closed = /-closed$/.test(key);
+  });
+  function d3_svg_lineLinear(points) {
+    return points.join("L");
+  }
+  function d3_svg_lineLinearClosed(points) {
+    return d3_svg_lineLinear(points) + "Z";
+  }
+  function d3_svg_lineStep(points) {
+    var i = 0, n = points.length, p = points[0], path = [ p[0], ",", p[1] ];
+    while (++i < n) path.push("H", (p[0] + (p = points[i])[0]) / 2, "V", p[1]);
+    if (n > 1) path.push("H", p[0]);
+    return path.join("");
+  }
+  function d3_svg_lineStepBefore(points) {
+    var i = 0, n = points.length, p = points[0], path = [ p[0], ",", p[1] ];
+    while (++i < n) path.push("V", (p = points[i])[1], "H", p[0]);
+    return path.join("");
+  }
+  function d3_svg_lineStepAfter(points) {
+    var i = 0, n = points.length, p = points[0], path = [ p[0], ",", p[1] ];
+    while (++i < n) path.push("H", (p = points[i])[0], "V", p[1]);
+    return path.join("");
+  }
+  function d3_svg_lineCardinalOpen(points, tension) {
+    return points.length < 4 ? d3_svg_lineLinear(points) : points[1] + d3_svg_lineHermite(points.slice(1, points.length - 1), d3_svg_lineCardinalTangents(points, tension));
+  }
+  function d3_svg_lineCardinalClosed(points, tension) {
+    return points.length < 3 ? d3_svg_lineLinear(points) : points[0] + d3_svg_lineHermite((points.push(points[0]), 
+    points), d3_svg_lineCardinalTangents([ points[points.length - 2] ].concat(points, [ points[1] ]), tension));
+  }
+  function d3_svg_lineCardinal(points, tension) {
+    return points.length < 3 ? d3_svg_lineLinear(points) : points[0] + d3_svg_lineHermite(points, d3_svg_lineCardinalTangents(points, tension));
+  }
+  function d3_svg_lineHermite(points, tangents) {
+    if (tangents.length < 1 || points.length != tangents.length && points.length != tangents.length + 2) {
+      return d3_svg_lineLinear(points);
+    }
+    var quad = points.length != tangents.length, path = "", p0 = points[0], p = points[1], t0 = tangents[0], t = t0, pi = 1;
+    if (quad) {
+      path += "Q" + (p[0] - t0[0] * 2 / 3) + "," + (p[1] - t0[1] * 2 / 3) + "," + p[0] + "," + p[1];
+      p0 = points[1];
+      pi = 2;
+    }
+    if (tangents.length > 1) {
+      t = tangents[1];
+      p = points[pi];
+      pi++;
+      path += "C" + (p0[0] + t0[0]) + "," + (p0[1] + t0[1]) + "," + (p[0] - t[0]) + "," + (p[1] - t[1]) + "," + p[0] + "," + p[1];
+      for (var i = 2; i < tangents.length; i++, pi++) {
+        p = points[pi];
+        t = tangents[i];
+        path += "S" + (p[0] - t[0]) + "," + (p[1] - t[1]) + "," + p[0] + "," + p[1];
+      }
+    }
+    if (quad) {
+      var lp = points[pi];
+      path += "Q" + (p[0] + t[0] * 2 / 3) + "," + (p[1] + t[1] * 2 / 3) + "," + lp[0] + "," + lp[1];
+    }
+    return path;
+  }
+  function d3_svg_lineCardinalTangents(points, tension) {
+    var tangents = [], a = (1 - tension) / 2, p0, p1 = points[0], p2 = points[1], i = 1, n = points.length;
+    while (++i < n) {
+      p0 = p1;
+      p1 = p2;
+      p2 = points[i];
+      tangents.push([ a * (p2[0] - p0[0]), a * (p2[1] - p0[1]) ]);
+    }
+    return tangents;
+  }
+  function d3_svg_lineBasis(points) {
+    if (points.length < 3) return d3_svg_lineLinear(points);
+    var i = 1, n = points.length, pi = points[0], x0 = pi[0], y0 = pi[1], px = [ x0, x0, x0, (pi = points[1])[0] ], py = [ y0, y0, y0, pi[1] ], path = [ x0, ",", y0, "L", d3_svg_lineDot4(d3_svg_lineBasisBezier3, px), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier3, py) ];
+    points.push(points[n - 1]);
+    while (++i <= n) {
+      pi = points[i];
+      px.shift();
+      px.push(pi[0]);
+      py.shift();
+      py.push(pi[1]);
+      d3_svg_lineBasisBezier(path, px, py);
+    }
+    points.pop();
+    path.push("L", pi);
+    return path.join("");
+  }
+  function d3_svg_lineBasisOpen(points) {
+    if (points.length < 4) return d3_svg_lineLinear(points);
+    var path = [], i = -1, n = points.length, pi, px = [ 0 ], py = [ 0 ];
+    while (++i < 3) {
+      pi = points[i];
+      px.push(pi[0]);
+      py.push(pi[1]);
+    }
+    path.push(d3_svg_lineDot4(d3_svg_lineBasisBezier3, px) + "," + d3_svg_lineDot4(d3_svg_lineBasisBezier3, py));
+    --i;
+    while (++i < n) {
+      pi = points[i];
+      px.shift();
+      px.push(pi[0]);
+      py.shift();
+      py.push(pi[1]);
+      d3_svg_lineBasisBezier(path, px, py);
+    }
+    return path.join("");
+  }
+  function d3_svg_lineBasisClosed(points) {
+    var path, i = -1, n = points.length, m = n + 4, pi, px = [], py = [];
+    while (++i < 4) {
+      pi = points[i % n];
+      px.push(pi[0]);
+      py.push(pi[1]);
+    }
+    path = [ d3_svg_lineDot4(d3_svg_lineBasisBezier3, px), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier3, py) ];
+    --i;
+    while (++i < m) {
+      pi = points[i % n];
+      px.shift();
+      px.push(pi[0]);
+      py.shift();
+      py.push(pi[1]);
+      d3_svg_lineBasisBezier(path, px, py);
+    }
+    return path.join("");
+  }
+  function d3_svg_lineBundle(points, tension) {
+    var n = points.length - 1;
+    if (n) {
+      var x0 = points[0][0], y0 = points[0][1], dx = points[n][0] - x0, dy = points[n][1] - y0, i = -1, p, t;
+      while (++i <= n) {
+        p = points[i];
+        t = i / n;
+        p[0] = tension * p[0] + (1 - tension) * (x0 + t * dx);
+        p[1] = tension * p[1] + (1 - tension) * (y0 + t * dy);
+      }
+    }
+    return d3_svg_lineBasis(points);
+  }
+  function d3_svg_lineDot4(a, b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+  }
+  var d3_svg_lineBasisBezier1 = [ 0, 2 / 3, 1 / 3, 0 ], d3_svg_lineBasisBezier2 = [ 0, 1 / 3, 2 / 3, 0 ], d3_svg_lineBasisBezier3 = [ 0, 1 / 6, 2 / 3, 1 / 6 ];
+  function d3_svg_lineBasisBezier(path, x, y) {
+    path.push("C", d3_svg_lineDot4(d3_svg_lineBasisBezier1, x), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier1, y), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier2, x), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier2, y), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier3, x), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier3, y));
+  }
+  function d3_svg_lineSlope(p0, p1) {
+    return (p1[1] - p0[1]) / (p1[0] - p0[0]);
+  }
+  function d3_svg_lineFiniteDifferences(points) {
+    var i = 0, j = points.length - 1, m = [], p0 = points[0], p1 = points[1], d = m[0] = d3_svg_lineSlope(p0, p1);
+    while (++i < j) {
+      m[i] = (d + (d = d3_svg_lineSlope(p0 = p1, p1 = points[i + 1]))) / 2;
+    }
+    m[i] = d;
+    return m;
+  }
+  function d3_svg_lineMonotoneTangents(points) {
+    var tangents = [], d, a, b, s, m = d3_svg_lineFiniteDifferences(points), i = -1, j = points.length - 1;
+    while (++i < j) {
+      d = d3_svg_lineSlope(points[i], points[i + 1]);
+      if (abs(d) < ε) {
+        m[i] = m[i + 1] = 0;
+      } else {
+        a = m[i] / d;
+        b = m[i + 1] / d;
+        s = a * a + b * b;
+        if (s > 9) {
+          s = d * 3 / Math.sqrt(s);
+          m[i] = s * a;
+          m[i + 1] = s * b;
+        }
+      }
+    }
+    i = -1;
+    while (++i <= j) {
+      s = (points[Math.min(j, i + 1)][0] - points[Math.max(0, i - 1)][0]) / (6 * (1 + m[i] * m[i]));
+      tangents.push([ s || 0, m[i] * s || 0 ]);
+    }
+    return tangents;
+  }
+  function d3_svg_lineMonotone(points) {
+    return points.length < 3 ? d3_svg_lineLinear(points) : points[0] + d3_svg_lineHermite(points, d3_svg_lineMonotoneTangents(points));
+  }
+  d3.svg.line.radial = function() {
+    var line = d3_svg_line(d3_svg_lineRadial);
+    line.radius = line.x, delete line.x;
+    line.angle = line.y, delete line.y;
+    return line;
+  };
+  function d3_svg_lineRadial(points) {
+    var point, i = -1, n = points.length, r, a;
+    while (++i < n) {
+      point = points[i];
+      r = point[0];
+      a = point[1] + d3_svg_arcOffset;
+      point[0] = r * Math.cos(a);
+      point[1] = r * Math.sin(a);
+    }
+    return points;
+  }
+  function d3_svg_area(projection) {
+    var x0 = d3_geom_pointX, x1 = d3_geom_pointX, y0 = 0, y1 = d3_geom_pointY, defined = d3_true, interpolate = d3_svg_lineLinear, interpolateKey = interpolate.key, interpolateReverse = interpolate, L = "L", tension = .7;
+    function area(data) {
+      var segments = [], points0 = [], points1 = [], i = -1, n = data.length, d, fx0 = d3_functor(x0), fy0 = d3_functor(y0), fx1 = x0 === x1 ? function() {
+        return x;
+      } : d3_functor(x1), fy1 = y0 === y1 ? function() {
+        return y;
+      } : d3_functor(y1), x, y;
+      function segment() {
+        segments.push("M", interpolate(projection(points1), tension), L, interpolateReverse(projection(points0.reverse()), tension), "Z");
+      }
+      while (++i < n) {
+        if (defined.call(this, d = data[i], i)) {
+          points0.push([ x = +fx0.call(this, d, i), y = +fy0.call(this, d, i) ]);
+          points1.push([ +fx1.call(this, d, i), +fy1.call(this, d, i) ]);
+        } else if (points0.length) {
+          segment();
+          points0 = [];
+          points1 = [];
+        }
+      }
+      if (points0.length) segment();
+      return segments.length ? segments.join("") : null;
+    }
+    area.x = function(_) {
+      if (!arguments.length) return x1;
+      x0 = x1 = _;
+      return area;
+    };
+    area.x0 = function(_) {
+      if (!arguments.length) return x0;
+      x0 = _;
+      return area;
+    };
+    area.x1 = function(_) {
+      if (!arguments.length) return x1;
+      x1 = _;
+      return area;
+    };
+    area.y = function(_) {
+      if (!arguments.length) return y1;
+      y0 = y1 = _;
+      return area;
+    };
+    area.y0 = function(_) {
+      if (!arguments.length) return y0;
+      y0 = _;
+      return area;
+    };
+    area.y1 = function(_) {
+      if (!arguments.length) return y1;
+      y1 = _;
+      return area;
+    };
+    area.defined = function(_) {
+      if (!arguments.length) return defined;
+      defined = _;
+      return area;
+    };
+    area.interpolate = function(_) {
+      if (!arguments.length) return interpolateKey;
+      if (typeof _ === "function") interpolateKey = interpolate = _; else interpolateKey = (interpolate = d3_svg_lineInterpolators.get(_) || d3_svg_lineLinear).key;
+      interpolateReverse = interpolate.reverse || interpolate;
+      L = interpolate.closed ? "M" : "L";
+      return area;
+    };
+    area.tension = function(_) {
+      if (!arguments.length) return tension;
+      tension = _;
+      return area;
+    };
+    return area;
+  }
+  d3_svg_lineStepBefore.reverse = d3_svg_lineStepAfter;
+  d3_svg_lineStepAfter.reverse = d3_svg_lineStepBefore;
+  d3.svg.area = function() {
+    return d3_svg_area(d3_identity);
+  };
+  d3.svg.area.radial = function() {
+    var area = d3_svg_area(d3_svg_lineRadial);
+    area.radius = area.x, delete area.x;
+    area.innerRadius = area.x0, delete area.x0;
+    area.outerRadius = area.x1, delete area.x1;
+    area.angle = area.y, delete area.y;
+    area.startAngle = area.y0, delete area.y0;
+    area.endAngle = area.y1, delete area.y1;
+    return area;
+  };
+  d3.svg.chord = function() {
+    var source = d3_source, target = d3_target, radius = d3_svg_chordRadius, startAngle = d3_svg_arcStartAngle, endAngle = d3_svg_arcEndAngle;
+    function chord(d, i) {
+      var s = subgroup(this, source, d, i), t = subgroup(this, target, d, i);
+      return "M" + s.p0 + arc(s.r, s.p1, s.a1 - s.a0) + (equals(s, t) ? curve(s.r, s.p1, s.r, s.p0) : curve(s.r, s.p1, t.r, t.p0) + arc(t.r, t.p1, t.a1 - t.a0) + curve(t.r, t.p1, s.r, s.p0)) + "Z";
+    }
+    function subgroup(self, f, d, i) {
+      var subgroup = f.call(self, d, i), r = radius.call(self, subgroup, i), a0 = startAngle.call(self, subgroup, i) + d3_svg_arcOffset, a1 = endAngle.call(self, subgroup, i) + d3_svg_arcOffset;
+      return {
+        r: r,
+        a0: a0,
+        a1: a1,
+        p0: [ r * Math.cos(a0), r * Math.sin(a0) ],
+        p1: [ r * Math.cos(a1), r * Math.sin(a1) ]
+      };
+    }
+    function equals(a, b) {
+      return a.a0 == b.a0 && a.a1 == b.a1;
+    }
+    function arc(r, p, a) {
+      return "A" + r + "," + r + " 0 " + +(a > π) + ",1 " + p;
+    }
+    function curve(r0, p0, r1, p1) {
+      return "Q 0,0 " + p1;
+    }
+    chord.radius = function(v) {
+      if (!arguments.length) return radius;
+      radius = d3_functor(v);
+      return chord;
+    };
+    chord.source = function(v) {
+      if (!arguments.length) return source;
+      source = d3_functor(v);
+      return chord;
+    };
+    chord.target = function(v) {
+      if (!arguments.length) return target;
+      target = d3_functor(v);
+      return chord;
+    };
+    chord.startAngle = function(v) {
+      if (!arguments.length) return startAngle;
+      startAngle = d3_functor(v);
+      return chord;
+    };
+    chord.endAngle = function(v) {
+      if (!arguments.length) return endAngle;
+      endAngle = d3_functor(v);
+      return chord;
+    };
+    return chord;
+  };
+  function d3_svg_chordRadius(d) {
+    return d.radius;
+  }
+  d3.svg.diagonal = function() {
+    var source = d3_source, target = d3_target, projection = d3_svg_diagonalProjection;
+    function diagonal(d, i) {
+      var p0 = source.call(this, d, i), p3 = target.call(this, d, i), m = (p0.y + p3.y) / 2, p = [ p0, {
+        x: p0.x,
+        y: m
+      }, {
+        x: p3.x,
+        y: m
+      }, p3 ];
+      p = p.map(projection);
+      return "M" + p[0] + "C" + p[1] + " " + p[2] + " " + p[3];
+    }
+    diagonal.source = function(x) {
+      if (!arguments.length) return source;
+      source = d3_functor(x);
+      return diagonal;
+    };
+    diagonal.target = function(x) {
+      if (!arguments.length) return target;
+      target = d3_functor(x);
+      return diagonal;
+    };
+    diagonal.projection = function(x) {
+      if (!arguments.length) return projection;
+      projection = x;
+      return diagonal;
+    };
+    return diagonal;
+  };
+  function d3_svg_diagonalProjection(d) {
+    return [ d.x, d.y ];
+  }
+  d3.svg.diagonal.radial = function() {
+    var diagonal = d3.svg.diagonal(), projection = d3_svg_diagonalProjection, projection_ = diagonal.projection;
+    diagonal.projection = function(x) {
+      return arguments.length ? projection_(d3_svg_diagonalRadialProjection(projection = x)) : projection;
+    };
+    return diagonal;
+  };
+  function d3_svg_diagonalRadialProjection(projection) {
+    return function() {
+      var d = projection.apply(this, arguments), r = d[0], a = d[1] + d3_svg_arcOffset;
+      return [ r * Math.cos(a), r * Math.sin(a) ];
+    };
+  }
+  d3.svg.symbol = function() {
+    var type = d3_svg_symbolType, size = d3_svg_symbolSize;
+    function symbol(d, i) {
+      return (d3_svg_symbols.get(type.call(this, d, i)) || d3_svg_symbolCircle)(size.call(this, d, i));
+    }
+    symbol.type = function(x) {
+      if (!arguments.length) return type;
+      type = d3_functor(x);
+      return symbol;
+    };
+    symbol.size = function(x) {
+      if (!arguments.length) return size;
+      size = d3_functor(x);
+      return symbol;
+    };
+    return symbol;
+  };
+  function d3_svg_symbolSize() {
+    return 64;
+  }
+  function d3_svg_symbolType() {
+    return "circle";
+  }
+  function d3_svg_symbolCircle(size) {
+    var r = Math.sqrt(size / π);
+    return "M0," + r + "A" + r + "," + r + " 0 1,1 0," + -r + "A" + r + "," + r + " 0 1,1 0," + r + "Z";
+  }
+  var d3_svg_symbols = d3.map({
+    circle: d3_svg_symbolCircle,
+    cross: function(size) {
+      var r = Math.sqrt(size / 5) / 2;
+      return "M" + -3 * r + "," + -r + "H" + -r + "V" + -3 * r + "H" + r + "V" + -r + "H" + 3 * r + "V" + r + "H" + r + "V" + 3 * r + "H" + -r + "V" + r + "H" + -3 * r + "Z";
+    },
+    diamond: function(size) {
+      var ry = Math.sqrt(size / (2 * d3_svg_symbolTan30)), rx = ry * d3_svg_symbolTan30;
+      return "M0," + -ry + "L" + rx + ",0" + " 0," + ry + " " + -rx + ",0" + "Z";
+    },
+    square: function(size) {
+      var r = Math.sqrt(size) / 2;
+      return "M" + -r + "," + -r + "L" + r + "," + -r + " " + r + "," + r + " " + -r + "," + r + "Z";
+    },
+    "triangle-down": function(size) {
+      var rx = Math.sqrt(size / d3_svg_symbolSqrt3), ry = rx * d3_svg_symbolSqrt3 / 2;
+      return "M0," + ry + "L" + rx + "," + -ry + " " + -rx + "," + -ry + "Z";
+    },
+    "triangle-up": function(size) {
+      var rx = Math.sqrt(size / d3_svg_symbolSqrt3), ry = rx * d3_svg_symbolSqrt3 / 2;
+      return "M0," + -ry + "L" + rx + "," + ry + " " + -rx + "," + ry + "Z";
+    }
+  });
+  d3.svg.symbolTypes = d3_svg_symbols.keys();
+  var d3_svg_symbolSqrt3 = Math.sqrt(3), d3_svg_symbolTan30 = Math.tan(30 * d3_radians);
   var d3_time_format = d3_time.format = d3_locale_enUS.timeFormat;
   var d3_time_formatUtc = d3_time_format.utc;
   var d3_time_formatIso = d3_time_formatUtc("%Y-%m-%dT%H:%M:%S.%LZ");

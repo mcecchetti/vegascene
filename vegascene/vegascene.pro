@@ -21,6 +21,10 @@ CONFIG(debug, debug|release) {
     TARGET = vegascene-dbg
 }
 
+DEFINES += WITH_TOPOJSON
+DEFINES += WITH_EXAMPLE_LIBS
+
+
 QMAKE_CXXFLAGS += -std=c++98 -Wall
 
 
