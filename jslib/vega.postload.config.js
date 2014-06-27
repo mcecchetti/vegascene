@@ -1,3 +1,2 @@
- 
-vg.config.isNode = true;
 
+vg.config.isNode = true;
